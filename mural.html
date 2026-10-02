@@ -138,34 +138,44 @@
              data-i18n-es="Usa tu cámara o elige una foto de tu galería para colocar tu rostro en el traje.">Use your camera or pick a photo from your gallery to place your face in the outfit.</p>
         </div>
         
-        <label class="btn-holi glass rounded-2xl px-6 py-3.5 text-sm sm:text-base font-black text-white bg-gradient-to-r from-holi-pink via-holi-orange to-holi-yellow shadow-xl cursor-pointer flex items-center gap-2 animate-pulse-glow">
-          <span>📷</span>
-          <span data-i18n-en="Open Camera / Gallery" data-i18n-es="Abrir Cámara / Galería">Open Camera / Gallery</span>
-          <input id="camera-input" type="file" accept="image/*" capture="user" class="hidden" onchange="handleImageUpload(event)" />
-        </label>
+        <div class="flex flex-col sm:flex-row gap-2 w-full justify-center items-center">
+          <!-- Camera button (mobile front camera) -->
+          <label class="btn-holi glass rounded-2xl px-5 py-3 text-sm font-black text-white bg-gradient-to-r from-holi-pink via-holi-orange to-holi-yellow shadow-xl cursor-pointer flex items-center gap-2 animate-pulse-glow">
+            <span>📷</span>
+            <span data-i18n-en="Take Selfie" data-i18n-es="Tomar Selfie">Take Selfie</span>
+            <input id="camera-input" type="file" accept="image/*" capture="user" class="hidden" onchange="handleImageUpload(event)" />
+          </label>
+          <!-- Gallery button (file picker without capture) -->
+          <label class="btn-holi glass rounded-2xl px-5 py-3 text-sm font-black text-white bg-gradient-to-r from-holi-purple to-holi-cyan shadow-xl cursor-pointer flex items-center gap-2">
+            <span>🖼️</span>
+            <span data-i18n-en="From Gallery" data-i18n-es="Desde Galería">From Gallery</span>
+            <input id="gallery-input" type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
+          </label>
+        </div>
       </div>
     </div>
 
     <!-- Adjustments Toolbar (Shown after photo is loaded) -->
     <div id="controls-panel" class="hidden glass rounded-2xl p-3 border border-white/15 flex flex-col gap-3">
       <!-- Sliders: Zoom & Position Hint -->
-      <div class="flex items-center gap-3 text-xs">
+      <div class="flex items-center gap-2 text-xs">
         <span class="text-white/70 font-semibold shrink-0" data-i18n-en="Zoom:" data-i18n-es="Zoom:">Zoom:</span>
-        <button onclick="adjustZoom(-0.1)" class="w-7 h-7 rounded-lg glass font-bold text-sm hover:border-white">-</button>
-        <input id="zoom-slider" type="range" min="0.3" max="3" step="0.05" value="1" class="flex-1 accent-pink-500 cursor-pointer" oninput="onZoomChange(this.value)" />
-        <button onclick="adjustZoom(0.1)" class="w-7 h-7 rounded-lg glass font-bold text-sm hover:border-white">+</button>
+        <button onclick="adjustZoom(-0.05)" class="w-8 h-8 rounded-lg glass font-bold text-base hover:border-white active:scale-90 transition-transform">−</button>
+        <input id="zoom-slider" type="range" min="0.2" max="4" step="0.02" value="1" class="flex-1 accent-pink-500 cursor-pointer" oninput="onZoomChange(this.value)" />
+        <button onclick="adjustZoom(0.05)" class="w-8 h-8 rounded-lg glass font-bold text-base hover:border-white active:scale-90 transition-transform">+</button>
+        <button onclick="resetZoom()" class="w-8 h-8 rounded-lg glass font-bold text-xs hover:border-holi-yellow active:scale-90 transition-transform" title="Reset zoom" data-i18n-en="↺" data-i18n-es="↺">↺</button>
       </div>
 
       <p class="text-[11px] text-white/50 text-center"
-         data-i18n-en="💡 Tip: Drag the photo with your finger to position your face!"
-         data-i18n-es="💡 Consejo: ¡Arrastra la foto con tu dedo para acomodar tu rostro!">💡 Tip: Drag the photo with your finger to position your face!</p>
+         data-i18n-en="💡 Tip: Drag or pinch the photo to position your face!"
+         data-i18n-es="💡 Consejo: ¡Arrastra o pellizca la foto para acomodar tu rostro!">💡 Tip: Drag or pinch the photo to position your face!</p>
 
       <!-- Action Buttons -->
       <div class="grid grid-cols-2 gap-2">
         <label class="btn-holi glass rounded-xl py-2.5 text-xs font-bold border border-white/20 text-white/90 hover:text-white flex items-center justify-center gap-1.5 cursor-pointer text-center">
           <span>🔄</span>
           <span data-i18n-en="New Photo" data-i18n-es="Cambiar Foto">New Photo</span>
-          <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
+          <input id="change-input" type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
         </label>
         
         <button onclick="downloadSouvenir()" class="btn-holi glass rounded-xl py-2.5 text-xs font-bold border border-holi-green/50 bg-gradient-to-r from-holi-green/30 to-holi-cyan/30 text-white flex items-center justify-center gap-1.5 shadow-lg">
@@ -251,8 +261,11 @@
       canvas.height = 1200;
     }
 
+    // ─── Image loading ─────────────────────────────────────────────────────────
     function handleImageUpload(e) {
       const file = e.target.files && e.target.files[0];
+      // Reset input value immediately so the same file / camera re-open works
+      e.target.value = '';
       if (!file) return;
 
       const reader = new FileReader();
@@ -262,8 +275,6 @@
           userImage = img;
           document.getElementById('upload-prompt').classList.add('hidden');
           document.getElementById('controls-panel').classList.remove('hidden');
-          
-          // Center photo inside the cutout hole
           resetPhotoTransform();
           redrawCanvas();
         };
@@ -272,106 +283,102 @@
       reader.readAsDataURL(file);
     }
 
+    // ─── Transform helpers ─────────────────────────────────────────────────────
     function resetPhotoTransform() {
       if (!userImage) return;
       const hole = FRAMES[activeFrameKey].hole;
       const targetCenterX = canvas.width * hole.x;
       const targetCenterY = canvas.height * hole.y;
-      
-      // Calculate scale to nicely fit user photo inside cutout
+
+      // Fit so the shorter edge of the photo fills the hole diameter
       const targetWidth = canvas.width * (hole.rx * 2.6);
       userPhotoScale = targetWidth / userImage.width;
-      
-      userPhotoPos.x = targetCenterX - (userImage.width * userPhotoScale) / 2;
+
+      userPhotoPos.x = targetCenterX - (userImage.width  * userPhotoScale) / 2;
       userPhotoPos.y = targetCenterY - (userImage.height * userPhotoScale) / 2;
 
-      document.getElementById('zoom-slider').value = userPhotoScale;
+      const slider = document.getElementById('zoom-slider');
+      slider.min   = 0.2;
+      slider.max   = 4;
+      slider.step  = 0.02;
+      slider.value = userPhotoScale;
     }
 
+    function resetZoom() {
+      resetPhotoTransform();
+      redrawCanvas();
+    }
+
+    // ─── Canvas rendering ──────────────────────────────────────────────────────
     function redrawCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 1. Draw user photo underneath (if uploaded)
+      // 1. Draw user photo underneath
       if (userImage) {
-        ctx.save();
         ctx.drawImage(
           userImage,
-          userPhotoPos.x,
-          userPhotoPos.y,
-          userImage.width * userPhotoScale,
+          userPhotoPos.x, userPhotoPos.y,
+          userImage.width  * userPhotoScale,
           userImage.height * userPhotoScale
         );
-        ctx.restore();
       }
 
-      // 2. Draw outfit frame on top with hole cutout (using destination-in or clipping)
+      // 2. Draw outfit frame with transparent oval hole
       if (frameImage && frameImage.complete) {
-        ctx.save();
-        
-        // Draw frame onto a temporary offscreen canvas to cut out the white face hole
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width = canvas.width;
+        const offCanvas  = document.createElement('canvas');
+        offCanvas.width  = canvas.width;
         offCanvas.height = canvas.height;
         const offCtx = offCanvas.getContext('2d');
-        
+
         offCtx.drawImage(frameImage, 0, 0, offCanvas.width, offCanvas.height);
-        
-        // Cut out the oval hole in the frame so the user's photo is visible
+
         const hole = FRAMES[activeFrameKey].hole;
-        offCtx.save();
         offCtx.globalCompositeOperation = 'destination-out';
         offCtx.beginPath();
         offCtx.ellipse(
-          offCanvas.width * hole.x,
+          offCanvas.width  * hole.x,
           offCanvas.height * hole.y,
-          offCanvas.width * hole.rx,
+          offCanvas.width  * hole.rx,
           offCanvas.height * hole.ry,
           0, 0, Math.PI * 2
         );
         offCtx.fill();
-        offCtx.restore();
 
-        // Draw composite frame over canvas
         ctx.drawImage(offCanvas, 0, 0);
-        ctx.restore();
       }
 
-      // 3. Draw festive branding watermark at bottom
-      ctx.save();
+      // 3. Festive watermark
       ctx.fillStyle = 'rgba(26, 5, 51, 0.75)';
       ctx.fillRect(0, canvas.height - 70, canvas.width, 70);
-      
       ctx.font = 'bold 28px Outfit, sans-serif';
       ctx.fillStyle = '#FFD700';
       ctx.textAlign = 'center';
       ctx.fillText('English Week 2026 • Instituto de Idiomas de Salta', canvas.width / 2, canvas.height - 26);
-      ctx.restore();
     }
 
-    // Touch & Mouse Dragging handlers
-    function getCanvasCoords(e) {
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      const scaleX = canvas.width / rect.width;
+    // ─── Coordinate helper ─────────────────────────────────────────────────────
+    function getCanvasCoords(clientX, clientY) {
+      const rect   = canvas.getBoundingClientRect();
+      const scaleX = canvas.width  / rect.width;
       const scaleY = canvas.height / rect.height;
       return {
         x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top) * scaleY
+        y: (clientY - rect.top)  * scaleY
       };
     }
 
+    // ─── Mouse drag ────────────────────────────────────────────────────────────
     canvas.addEventListener('mousedown', (e) => {
       if (!userImage) return;
       isDragging = true;
-      const pos = getCanvasCoords(e);
+      const pos = getCanvasCoords(e.clientX, e.clientY);
       dragStart.x = pos.x - userPhotoPos.x;
       dragStart.y = pos.y - userPhotoPos.y;
     });
 
     window.addEventListener('mousemove', (e) => {
       if (!isDragging || !userImage) return;
-      const pos = getCanvasCoords(e);
+      const pos = getCanvasCoords(e.clientX, e.clientY);
       userPhotoPos.x = pos.x - dragStart.x;
       userPhotoPos.y = pos.y - dragStart.y;
       redrawCanvas();
@@ -379,49 +386,103 @@
 
     window.addEventListener('mouseup', () => { isDragging = false; });
 
-    // Touch handlers for mobile phones
+    // ─── Touch drag + pinch-to-zoom ────────────────────────────────────────────
+    let lastPinchDist = null;
+
+    function getTouchDist(touches) {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.hypot(dx, dy);
+    }
+
+    function getTouchMidpoint(touches) {
+      return {
+        x: (touches[0].clientX + touches[1].clientX) / 2,
+        y: (touches[0].clientY + touches[1].clientY) / 2,
+      };
+    }
+
     canvas.addEventListener('touchstart', (e) => {
       if (!userImage) return;
-      isDragging = true;
-      const pos = getCanvasCoords(e);
-      dragStart.x = pos.x - userPhotoPos.x;
-      dragStart.y = pos.y - userPhotoPos.y;
+      if (e.touches.length === 2) {
+        // Start pinch
+        isDragging = false;
+        lastPinchDist = getTouchDist(e.touches);
+      } else {
+        // Start drag
+        isDragging = true;
+        lastPinchDist = null;
+        const pos = getCanvasCoords(e.touches[0].clientX, e.touches[0].clientY);
+        dragStart.x = pos.x - userPhotoPos.x;
+        dragStart.y = pos.y - userPhotoPos.y;
+      }
     }, { passive: true });
 
     canvas.addEventListener('touchmove', (e) => {
-      if (!isDragging || !userImage) return;
-      const pos = getCanvasCoords(e);
-      userPhotoPos.x = pos.x - dragStart.x;
-      userPhotoPos.y = pos.y - dragStart.y;
-      redrawCanvas();
+      if (!userImage) return;
+
+      if (e.touches.length === 2 && lastPinchDist !== null) {
+        // ── Pinch zoom ──
+        const newDist  = getTouchDist(e.touches);
+        const ratio    = newDist / lastPinchDist;
+        lastPinchDist  = newDist;
+
+        const mid    = getTouchMidpoint(e.touches);
+        const midPos = getCanvasCoords(mid.x, mid.y);
+
+        const oldScale  = userPhotoScale;
+        let   newScale  = oldScale * ratio;
+        newScale = Math.max(0.2, Math.min(4, newScale));
+
+        // Zoom anchored to pinch midpoint
+        userPhotoPos.x = midPos.x - (midPos.x - userPhotoPos.x) * (newScale / oldScale);
+        userPhotoPos.y = midPos.y - (midPos.y - userPhotoPos.y) * (newScale / oldScale);
+        userPhotoScale = newScale;
+
+        // Sync slider
+        document.getElementById('zoom-slider').value = newScale;
+        redrawCanvas();
+
+      } else if (e.touches.length === 1 && isDragging) {
+        // ── Drag ──
+        const pos = getCanvasCoords(e.touches[0].clientX, e.touches[0].clientY);
+        userPhotoPos.x = pos.x - dragStart.x;
+        userPhotoPos.y = pos.y - dragStart.y;
+        redrawCanvas();
+      }
     }, { passive: true });
 
-    canvas.addEventListener('touchend', () => { isDragging = false; });
+    canvas.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) lastPinchDist = null;
+      if (e.touches.length === 0) isDragging = false;
+    });
 
+    // ─── Slider zoom ───────────────────────────────────────────────────────────
     function onZoomChange(val) {
       if (!userImage) return;
       const oldScale = userPhotoScale;
       userPhotoScale = parseFloat(val);
-      
-      // Zoom centered on hole
-      const hole = FRAMES[activeFrameKey].hole;
-      const centerX = canvas.width * hole.x;
+
+      // Keep zoom anchored on the hole centre
+      const hole    = FRAMES[activeFrameKey].hole;
+      const centerX = canvas.width  * hole.x;
       const centerY = canvas.height * hole.y;
-      
+
       userPhotoPos.x = centerX - (centerX - userPhotoPos.x) * (userPhotoScale / oldScale);
       userPhotoPos.y = centerY - (centerY - userPhotoPos.y) * (userPhotoScale / oldScale);
-      
+
       redrawCanvas();
     }
 
     function adjustZoom(delta) {
       const slider = document.getElementById('zoom-slider');
       let newVal = parseFloat(slider.value) + delta;
-      newVal = Math.max(0.3, Math.min(3, newVal));
+      newVal = Math.max(0.2, Math.min(4, newVal));
       slider.value = newVal;
       onZoomChange(newVal);
     }
 
+    // ─── Download ──────────────────────────────────────────────────────────────
     function downloadSouvenir() {
       redrawCanvas();
       const link = document.createElement('a');
@@ -430,7 +491,7 @@
       link.click();
     }
 
-    // Initialize with first frame
+    // ─── Init ──────────────────────────────────────────────────────────────────
     setupCanvasSize();
     selectFrame('male');
   </script>
