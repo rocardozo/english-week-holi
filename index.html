@@ -536,7 +536,8 @@
   /* ═══════════════════ SPA VIEW ROUTER ═══════════════════════════════ */
   const VIEWS = ['home','menu','colors','trivia','winner','bonus'];
 
-  function showView(id) {
+  // _activateView: cambia la vista SIN tocar el historial (uso interno)
+  function _activateView(id) {
     VIEWS.forEach(v => {
       const el = document.getElementById('view-' + v);
       if (!el) return;
@@ -549,17 +550,26 @@
         el.style.top = '-9999px';
       }
     });
-
-    // Show / hide navbar
     document.getElementById('navbar').classList.toggle('hidden', id === 'home');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // Special init per view
     if (id === 'colors') renderColorCards();
     if (id === 'trivia') renderTriviaQuestion();
     if (id === 'winner') launchConfetti();
     if (id === 'bonus')  initMural();
   }
+
+  // showView: cambia la vista Y agrega una entrada al historial del navegador
+  // Así el botón "atrás" del celular funciona correctamente
+  function showView(id) {
+    history.pushState({ view: id }, '', '#' + id);
+    _activateView(id);
+  }
+
+  // Escuchar cuando el usuario presiona "atrás" en el navegador
+  window.addEventListener('popstate', function(e) {
+    const id = (e.state && e.state.view) ? e.state.view : 'home';
+    _activateView(id);
+  });
 
   /* ═══════════════════ HOME — student cards ═══════════════════════════ */
   (function renderStudentCards() {
@@ -815,6 +825,9 @@
       if (el) { el.style.position = 'absolute'; el.style.top = '-9999px'; }
     }
   });
+
+  // Registrar el estado inicial en el historial para que "atrás" funcione desde la primera vista
+  history.replaceState({ view: 'home' }, '', '#home');
   </script>
 </body>
 </html>
