@@ -17,8 +17,9 @@ Holi/
 ├── colors.html      ← Color Meanings (flashcards con efecto 3D flip)
 ├── trivia.html      ← Trivia Quiz (8 preguntas + pantalla de premio y confeti)
 ├── match.html       ← Word Match (juego estilo Duolingo para emparejar palabras EN/ES)
-├── mural.html       ← Colour Mural (canvas interactivo con efecto spray y descarga PNG)
+├── mural.html       ← Holi Photo Booth (cabina de fotos con trajes tradicionales de Holi y descarga de recuerdo)
 ├── holi_bg.jpg      ← Imagen de fondo
+├── img/             ← Marcos de vestimentas tradicionales (Kurta varón, Saree mujer, marco festivo)
 ├── css/
 │   └── style.css    ← Estilos compartidos, animaciones y glassmorphism
 ├── js/
