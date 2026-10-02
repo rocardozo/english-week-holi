@@ -108,22 +108,22 @@
          data-i18n-es="1. Elige tu Traje o Marco">1. Choose Your Outfit / Frame</p>
       
       <div class="grid grid-cols-3 gap-2 sm:gap-3">
-        <!-- Frame 1: Male Kurta -->
-        <button onclick="selectFrame('male')" id="thumb-male" class="frame-thumbnail active rounded-xl overflow-hidden glass p-1 flex flex-col items-center gap-1 text-center">
+        <!-- Frame 1: Festive Holi (Default) -->
+        <button onclick="selectFrame('festive')" id="thumb-festive" class="frame-thumbnail active rounded-xl overflow-hidden glass p-1 flex flex-col items-center gap-1 text-center">
+          <img src="img/frame_festive.jpg" alt="Festive Frame" class="w-full h-16 sm:h-20 object-cover rounded-lg" />
+          <span class="text-[10px] sm:text-xs font-bold" data-i18n-en="Festive Frame" data-i18n-es="Marco Festivo">Festive Frame</span>
+        </button>
+
+        <!-- Frame 2: Male Kurta -->
+        <button onclick="selectFrame('male')" id="thumb-male" class="frame-thumbnail rounded-xl overflow-hidden glass p-1 flex flex-col items-center gap-1 text-center">
           <img src="img/frame_male.jpg" alt="Male Kurta" class="w-full h-16 sm:h-20 object-cover rounded-lg" />
           <span class="text-[10px] sm:text-xs font-bold" data-i18n-en="Kurta (Male)" data-i18n-es="Kurta (Varón)">Kurta (Male)</span>
         </button>
 
-        <!-- Frame 2: Female Saree -->
+        <!-- Frame 3: Female Saree -->
         <button onclick="selectFrame('female')" id="thumb-female" class="frame-thumbnail rounded-xl overflow-hidden glass p-1 flex flex-col items-center gap-1 text-center">
           <img src="img/frame_female.jpg" alt="Female Saree" class="w-full h-16 sm:h-20 object-cover rounded-lg" />
           <span class="text-[10px] sm:text-xs font-bold" data-i18n-en="Saree (Female)" data-i18n-es="Saree (Mujer)">Saree (Female)</span>
-        </button>
-
-        <!-- Frame 3: Festive Holi -->
-        <button onclick="selectFrame('festive')" id="thumb-festive" class="frame-thumbnail rounded-xl overflow-hidden glass p-1 flex flex-col items-center gap-1 text-center">
-          <img src="img/frame_festive.jpg" alt="Festive Frame" class="w-full h-16 sm:h-20 object-cover rounded-lg" />
-          <span class="text-[10px] sm:text-xs font-bold" data-i18n-en="Festive Frame" data-i18n-es="Marco Festivo">Festive Frame</span>
         </button>
       </div>
     </div>
@@ -234,7 +234,7 @@
       }
     };
 
-    let activeFrameKey = 'male';
+    let activeFrameKey = 'festive';
     let frameImage     = new Image();
     let userImage      = null;
 
@@ -491,7 +491,7 @@
 
     // ─── Init ──────────────────────────────────────────────────────────────────
     setupCanvasSize();
-    selectFrame('male');
+    selectFrame('festive');
   </script>
 </body>
 </html>
