@@ -133,13 +133,6 @@
       <!-- Main Rendering Canvas -->
       <canvas id="photo-canvas" class="w-full h-full block touch-none cursor-move"></canvas>
 
-      <!-- Processing overlay (shown during cartoon effect) -->
-      <div id="ai-loading" class="hidden absolute inset-0 flex flex-col items-center justify-center z-30 gap-3">
-        <div class="text-5xl spin-slow">🎨</div>
-        <p class="font-black text-white text-base" data-i18n-en="Applying cartoon effect…" data-i18n-es="Aplicando efecto caricatura…">Applying cartoon effect…</p>
-        <p class="text-white/60 text-xs text-center px-6" data-i18n-en="Making you look like a Holi illustration!" data-i18n-es="¡Convirtiéndote en una ilustración Holi!">Making you look like a Holi illustration!</p>
-      </div>
-
       <!-- Placeholder overlay before uploading photo -->
       <div id="upload-prompt" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[#1A0533]/85 backdrop-blur-sm z-20 gap-4">
         <div class="text-6xl animate-bounce">📸</div>
@@ -148,8 +141,8 @@
              data-i18n-en="Take a Selfie!"
              data-i18n-es="¡Sácate una Selfie!">Take a Selfie!</p>
           <p class="text-white/70 text-xs sm:text-sm mt-1 max-w-xs"
-             data-i18n-en="We turn your photo into a cartoon to match the Holi frame!"
-             data-i18n-es="¡Convertimos tu foto en caricatura para que combine con el marco Holi!">We turn your photo into a cartoon to match the Holi frame!</p>
+             data-i18n-en="Wear traditional festival clothes and download your Holi souvenir!"
+             data-i18n-es="¡Ponte ropa tradicional festiva y descarga tu recuerdo de Holi!">Wear traditional festival clothes and download your Holi souvenir!</p>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-2 w-full justify-center items-center">
@@ -167,7 +160,7 @@
           </label>
         </div>
 
-        <p class="text-white/40 text-[10px]" data-i18n-en="🎨 Cartoon effect applied automatically" data-i18n-es="🎨 Efecto caricatura aplicado automáticamente">🎨 Cartoon effect applied automatically</p>
+        <p class="text-white/40 text-[10px]" data-i18n-en="✨ Real photo with soft festival blend" data-i18n-es="✨ Foto real con integración suave festiva">✨ Real photo with soft festival blend</p>
       </div>
     </div>
 
@@ -226,7 +219,6 @@
     const ctx    = canvas.getContext('2d');
 
     // ─── Frame configuration ───────────────────────────────────────────────────
-    // hole coords are normalized (0-1) relative to canvas width/height
     const FRAMES = {
       male: {
         src:  'img/frame_male.jpg',
@@ -244,89 +236,13 @@
 
     let activeFrameKey = 'male';
     let frameImage     = new Image();
-    let userImage      = null;   // original Image element
-    let cartoonCanvas  = null;   // cartoon-processed canvas
+    let userImage      = null;
 
     // Transform state
     let userPhotoPos   = { x: 0, y: 0 };
     let userPhotoScale = 1.0;
     let isDragging     = false;
     let dragStart      = { x: 0, y: 0 };
-
-    // ─── Cartoon / Illustration Effect ───────────────────────────────────────────
-    // Runs in a Worker-friendly setTimeout to avoid blocking the main thread
-    function applyCartoonEffect(img) {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          // Work at reduced resolution for speed (max 1000px on longest side)
-          const MAX  = 1000;
-          const W    = img.naturalWidth  || img.width;
-          const H    = img.naturalHeight || img.height;
-          const sc   = Math.min(1, MAX / Math.max(W, H));
-          const w    = Math.round(W * sc);
-          const h    = Math.round(H * sc);
-
-          // ── Step 1: Draw with saturation + contrast boost (matches frame palette) ──
-          const base  = document.createElement('canvas');
-          base.width  = w;
-          base.height = h;
-          const bCtx  = base.getContext('2d');
-          bCtx.filter = 'saturate(2.4) contrast(1.5) brightness(1.05)';
-          bCtx.drawImage(img, 0, 0, w, h);
-          bCtx.filter = 'none';
-
-          // ── Step 2: Posterize — reduce color depth to create flat cartoon areas ──
-          const imgData = bCtx.getImageData(0, 0, w, h);
-          const d       = imgData.data;
-          const LEVELS  = 7;           // fewer levels = more cartoon-like
-          const step    = 255 / LEVELS;
-          for (let i = 0; i < d.length; i += 4) {
-            d[i]   = Math.round(d[i]   / step) * step | 0;
-            d[i+1] = Math.round(d[i+1] / step) * step | 0;
-            d[i+2] = Math.round(d[i+2] / step) * step | 0;
-          }
-          bCtx.putImageData(imgData, 0, 0);
-
-          // ── Step 3: Edge detection (Sobel) on blurred grayscale ──
-          const edge  = document.createElement('canvas');
-          edge.width  = w;
-          edge.height = h;
-          const eCtx  = edge.getContext('2d');
-          // Draw slightly blurred grayscale for cleaner edges
-          eCtx.filter = 'grayscale(1) blur(1px)';
-          eCtx.drawImage(img, 0, 0, w, h);
-          eCtx.filter = 'none';
-
-          const gray = eCtx.getImageData(0, 0, w, h).data;
-          const out  = eCtx.createImageData(w, h);
-          const od   = out.data;
-          const THRESH = 60;   // lower = more edges detected
-
-          for (let y = 1; y < h - 1; y++) {
-            for (let x = 1; x < w - 1; x++) {
-              // Sample 3x3 neighborhood (R channel only, already grayscale)
-              const g = (px, py) => gray[((py * w) + px) * 4];
-              const gx = -g(x-1,y-1) - 2*g(x-1,y) - g(x-1,y+1)
-                       +  g(x+1,y-1) + 2*g(x+1,y) + g(x+1,y+1);
-              const gy = -g(x-1,y-1) - 2*g(x,y-1) - g(x+1,y-1)
-                       +  g(x-1,y+1) + 2*g(x,y+1) + g(x+1,y+1);
-              const mag  = Math.sqrt(gx*gx + gy*gy);
-              const idx  = (y * w + x) * 4;
-              od[idx]    = 0;
-              od[idx+1]  = 0;
-              od[idx+2]  = 0;
-              od[idx+3]  = mag > THRESH ? Math.min(220, mag * 0.9) | 0 : 0;
-            }
-          }
-          eCtx.putImageData(out, 0, 0);
-
-          // ── Step 4: Composite dark edges on top of posterized base ──
-          bCtx.drawImage(edge, 0, 0);
-
-          resolve(base);
-        }, 20); // yield to browser before heavy processing
-      });
-    }
 
     // ─── Image upload ──────────────────────────────────────────────────────────
     function handleImageUpload(e) {
@@ -337,22 +253,11 @@
       const reader = new FileReader();
       reader.onload = (ev) => {
         const img  = new Image();
-        img.onload = async () => {
-          userImage     = img;
-          cartoonCanvas = null;
+        img.onload = () => {
+          userImage = img;
 
-          // Hide upload prompt, show processing overlay
+          // Hide upload prompt, show controls
           document.getElementById('upload-prompt').classList.add('hidden');
-          document.getElementById('controls-panel').classList.add('hidden');
-          document.getElementById('ai-loading').classList.remove('hidden');
-
-          try {
-            cartoonCanvas = await applyCartoonEffect(img);
-          } catch (err) {
-            console.warn('Cartoon effect failed, using original:', err);
-          }
-
-          document.getElementById('ai-loading').classList.add('hidden');
           document.getElementById('controls-panel').classList.remove('hidden');
           resetPhotoTransform();
           redrawCanvas();
@@ -363,25 +268,19 @@
     }
 
     // ─── Transform helpers ─────────────────────────────────────────────────────
-    function getDisplaySource() {
-      // Return cartoon canvas if available, otherwise the original image
-      return cartoonCanvas || userImage;
-    }
-
     function resetPhotoTransform() {
-      const src = getDisplaySource();
-      if (!src) return;
+      if (!userImage) return;
 
-      const hole        = FRAMES[activeFrameKey].hole;
+      const hole          = FRAMES[activeFrameKey].hole;
       const targetCenterX = canvas.width  * hole.x;
       const targetCenterY = canvas.height * hole.y;
 
-      // Scale so the person fits nicely in the hole (slightly larger than the oval)
-      const targetWidth = canvas.width * (hole.rx * 2.8);
-      userPhotoScale    = targetWidth / src.width;
+      // Scale so the person fits nicely in the hole
+      const targetWidth   = canvas.width * (hole.rx * 2.8);
+      userPhotoScale      = targetWidth / userImage.width;
 
-      userPhotoPos.x = targetCenterX - (src.width  * userPhotoScale) / 2;
-      userPhotoPos.y = targetCenterY - (src.height * userPhotoScale) / 2;
+      userPhotoPos.x = targetCenterX - (userImage.width  * userPhotoScale) / 2;
+      userPhotoPos.y = targetCenterY - (userImage.height * userPhotoScale) / 2;
 
       const slider   = document.getElementById('zoom-slider');
       slider.min     = 0.2;
@@ -399,19 +298,21 @@
     function redrawCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const src = getDisplaySource();
-
-      // 1. Draw user photo / segmented person underneath
-      if (src) {
+      // 1. Draw user photo underneath (natural, high quality)
+      if (userImage) {
+        ctx.save();
+        // Subtle crisp & vibrant boost to match celebratory lighting
+        ctx.filter = 'contrast(1.04) brightness(1.02) saturate(1.06)';
         ctx.drawImage(
-          src,
+          userImage,
           userPhotoPos.x, userPhotoPos.y,
-          src.width  * userPhotoScale,
-          src.height * userPhotoScale
+          userImage.width  * userPhotoScale,
+          userImage.height * userPhotoScale
         );
+        ctx.restore();
       }
 
-      // 2. Draw outfit frame with transparent oval hole
+      // 2. Draw outfit frame with feathered soft-blend oval hole
       if (frameImage && frameImage.complete) {
         const off    = document.createElement('canvas');
         off.width    = canvas.width;
@@ -420,18 +321,29 @@
 
         offCtx.drawImage(frameImage, 0, 0, off.width, off.height);
 
-        // Cut out oval hole so person shows through
+        // Cut out elliptical hole with feathered soft radial gradient
         const hole = FRAMES[activeFrameKey].hole;
+        const cx   = off.width  * hole.x;
+        const cy   = off.height * hole.y;
+        const rx   = off.width  * hole.rx;
+        const ry   = off.height * hole.ry;
+
+        offCtx.save();
+        offCtx.translate(cx, cy);
+        offCtx.scale(1, ry / rx);
+
+        // Soft radial blend: solid cutout in center, smooth fade out at edge
+        const grad = offCtx.createRadialGradient(0, 0, rx * 0.70, 0, 0, rx);
+        grad.addColorStop(0,   'rgba(0, 0, 0, 1)');
+        grad.addColorStop(0.75, 'rgba(0, 0, 0, 1)');
+        grad.addColorStop(1,   'rgba(0, 0, 0, 0)');
+
         offCtx.globalCompositeOperation = 'destination-out';
+        offCtx.fillStyle = grad;
         offCtx.beginPath();
-        offCtx.ellipse(
-          off.width  * hole.x,
-          off.height * hole.y,
-          off.width  * hole.rx,
-          off.height * hole.ry,
-          0, 0, Math.PI * 2
-        );
+        offCtx.arc(0, 0, rx, 0, Math.PI * 2);
         offCtx.fill();
+        offCtx.restore();
 
         ctx.drawImage(off, 0, 0);
       }
@@ -479,7 +391,7 @@
 
     // ─── Mouse drag ────────────────────────────────────────────────────────────
     canvas.addEventListener('mousedown', (e) => {
-      if (!getDisplaySource()) return;
+      if (!userImage) return;
       isDragging  = true;
       const pos   = getCanvasCoords(e.clientX, e.clientY);
       dragStart.x = pos.x - userPhotoPos.x;
@@ -487,7 +399,7 @@
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (!isDragging || !getDisplaySource()) return;
+      if (!isDragging || !userImage) return;
       const pos      = getCanvasCoords(e.clientX, e.clientY);
       userPhotoPos.x = pos.x - dragStart.x;
       userPhotoPos.y = pos.y - dragStart.y;
@@ -507,7 +419,7 @@
     }
 
     canvas.addEventListener('touchstart', (e) => {
-      if (!getDisplaySource()) return;
+      if (!userImage) return;
       if (e.touches.length === 2) {
         isDragging    = false;
         lastPinchDist = getTouchDist(e.touches);
@@ -521,7 +433,7 @@
     }, { passive: true });
 
     canvas.addEventListener('touchmove', (e) => {
-      if (!getDisplaySource()) return;
+      if (!userImage) return;
       if (e.touches.length === 2 && lastPinchDist !== null) {
         const newDist   = getTouchDist(e.touches);
         const ratio     = newDist / lastPinchDist;
@@ -550,7 +462,7 @@
 
     // ─── Slider zoom ───────────────────────────────────────────────────────────
     function onZoomChange(val) {
-      if (!getDisplaySource()) return;
+      if (!userImage) return;
       const oldScale = userPhotoScale;
       userPhotoScale = parseFloat(val);
       const hole     = FRAMES[activeFrameKey].hole;
