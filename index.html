@@ -818,16 +818,28 @@
     link.click();
   }
 
-  /* ═══════════════════ INIT — hide non-active views ═══════════════════ */
-  VIEWS.forEach(function(v) {
-    if (v !== 'home') {
-      var el = document.getElementById('view-' + v);
-      if (el) { el.style.position = 'absolute'; el.style.top = '-9999px'; }
-    }
-  });
+  /* ═══════════════════ INIT — arranque de la app ═══════════════════ */
+  (function initApp() {
+    // 1. Leer el hash de la URL al cargar (por si el usuario abre un link directo)
+    var hash = window.location.hash.replace('#', '');
+    var startView = VIEWS.indexOf(hash) !== -1 ? hash : 'home';
 
-  // Registrar el estado inicial en el historial para que "atrás" funcione desde la primera vista
-  history.replaceState({ view: 'home' }, '', '#home');
+    // 2. Ocultar todas las vistas menos la inicial
+    VIEWS.forEach(function(v) {
+      var el = document.getElementById('view-' + v);
+      if (!el) return;
+      if (v !== startView) {
+        el.style.position = 'absolute';
+        el.style.top = '-9999px';
+      }
+    });
+
+    // 3. Activar la vista inicial sin pushState (ya estamos en esa URL)
+    _activateView(startView);
+
+    // 4. Registrar el estado inicial en el historial
+    history.replaceState({ view: startView }, '', '#' + startView);
+  })();
   </script>
 </body>
 </html>
