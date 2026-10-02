@@ -43,9 +43,6 @@
   <!-- ─── Shared Stylesheet ────────────────────────────────────────────── -->
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- ─── MediaPipe Selfie Segmentation ──────────────────────────────────── -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
-
   <style>
     .frame-thumbnail {
       transition: all 0.2s ease;
@@ -56,7 +53,7 @@
       box-shadow: 0 0 16px rgba(0, 229, 255, 0.6);
       transform: scale(1.05);
     }
-    /* ── AI Loading overlay ── */
+    /* ── Processing overlay ── */
     #ai-loading {
       background: rgba(26, 5, 51, 0.92);
       backdrop-filter: blur(8px);
@@ -136,11 +133,11 @@
       <!-- Main Rendering Canvas -->
       <canvas id="photo-canvas" class="w-full h-full block touch-none cursor-move"></canvas>
 
-      <!-- AI Processing overlay -->
+      <!-- Processing overlay (shown during cartoon effect) -->
       <div id="ai-loading" class="hidden absolute inset-0 flex flex-col items-center justify-center z-30 gap-3">
-        <div class="text-5xl spin-slow">✨</div>
-        <p class="font-black text-white text-base" data-i18n-en="Removing background…" data-i18n-es="Eliminando fondo…">Removing background…</p>
-        <p class="text-white/60 text-xs text-center px-6" data-i18n-en="AI magic in progress — this takes just a second!" data-i18n-es="¡Magia de IA en progreso — solo tarda un segundo!">AI magic in progress — this takes just a second!</p>
+        <div class="text-5xl spin-slow">🎨</div>
+        <p class="font-black text-white text-base" data-i18n-en="Applying cartoon effect…" data-i18n-es="Aplicando efecto caricatura…">Applying cartoon effect…</p>
+        <p class="text-white/60 text-xs text-center px-6" data-i18n-en="Making you look like a Holi illustration!" data-i18n-es="¡Convirtiéndote en una ilustración Holi!">Making you look like a Holi illustration!</p>
       </div>
 
       <!-- Placeholder overlay before uploading photo -->
@@ -151,8 +148,8 @@
              data-i18n-en="Take a Selfie!"
              data-i18n-es="¡Sácate una Selfie!">Take a Selfie!</p>
           <p class="text-white/70 text-xs sm:text-sm mt-1 max-w-xs"
-             data-i18n-en="Our AI removes the background — only YOU in the outfit!"
-             data-i18n-es="¡Nuestra IA elimina el fondo — solo VOS en el traje!">Our AI removes the background — only YOU in the outfit!</p>
+             data-i18n-en="We turn your photo into a cartoon to match the Holi frame!"
+             data-i18n-es="¡Convertimos tu foto en caricatura para que combine con el marco Holi!">We turn your photo into a cartoon to match the Holi frame!</p>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-2 w-full justify-center items-center">
@@ -170,7 +167,7 @@
           </label>
         </div>
 
-        <p class="text-white/40 text-[10px]" data-i18n-en="✨ AI background removal powered by MediaPipe" data-i18n-es="✨ Eliminación de fondo con IA — MediaPipe">✨ AI background removal powered by MediaPipe</p>
+        <p class="text-white/40 text-[10px]" data-i18n-en="🎨 Cartoon effect applied automatically" data-i18n-es="🎨 Efecto caricatura aplicado automáticamente">🎨 Cartoon effect applied automatically</p>
       </div>
     </div>
 
@@ -248,8 +245,7 @@
     let activeFrameKey = 'male';
     let frameImage     = new Image();
     let userImage      = null;   // original Image element
-    let segCanvas      = null;   // person-only canvas (transparent bg)
-    let useSegmented   = false;  // true when MediaPipe succeeded
+    let cartoonCanvas  = null;   // cartoon-processed canvas
 
     // Transform state
     let userPhotoPos   = { x: 0, y: 0 };
@@ -257,62 +253,79 @@
     let isDragging     = false;
     let dragStart      = { x: 0, y: 0 };
 
-    // ─── MediaPipe Selfie Segmentation ────────────────────────────────────────
-    let segmenter = null;
-    let mpReady   = false;
+    // ─── Cartoon / Illustration Effect ───────────────────────────────────────────
+    // Runs in a Worker-friendly setTimeout to avoid blocking the main thread
+    function applyCartoonEffect(img) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          // Work at reduced resolution for speed (max 1000px on longest side)
+          const MAX  = 1000;
+          const W    = img.naturalWidth  || img.width;
+          const H    = img.naturalHeight || img.height;
+          const sc   = Math.min(1, MAX / Math.max(W, H));
+          const w    = Math.round(W * sc);
+          const h    = Math.round(H * sc);
 
-    function initMediaPipe() {
-      if (typeof SelfieSegmentation === 'undefined') {
-        console.warn('MediaPipe not loaded — background removal unavailable.');
-        return;
-      }
-      segmenter = new SelfieSegmentation({
-        locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${f}`
+          // ── Step 1: Draw with saturation + contrast boost (matches frame palette) ──
+          const base  = document.createElement('canvas');
+          base.width  = w;
+          base.height = h;
+          const bCtx  = base.getContext('2d');
+          bCtx.filter = 'saturate(2.4) contrast(1.5) brightness(1.05)';
+          bCtx.drawImage(img, 0, 0, w, h);
+          bCtx.filter = 'none';
+
+          // ── Step 2: Posterize — reduce color depth to create flat cartoon areas ──
+          const imgData = bCtx.getImageData(0, 0, w, h);
+          const d       = imgData.data;
+          const LEVELS  = 7;           // fewer levels = more cartoon-like
+          const step    = 255 / LEVELS;
+          for (let i = 0; i < d.length; i += 4) {
+            d[i]   = Math.round(d[i]   / step) * step | 0;
+            d[i+1] = Math.round(d[i+1] / step) * step | 0;
+            d[i+2] = Math.round(d[i+2] / step) * step | 0;
+          }
+          bCtx.putImageData(imgData, 0, 0);
+
+          // ── Step 3: Edge detection (Sobel) on blurred grayscale ──
+          const edge  = document.createElement('canvas');
+          edge.width  = w;
+          edge.height = h;
+          const eCtx  = edge.getContext('2d');
+          // Draw slightly blurred grayscale for cleaner edges
+          eCtx.filter = 'grayscale(1) blur(1px)';
+          eCtx.drawImage(img, 0, 0, w, h);
+          eCtx.filter = 'none';
+
+          const gray = eCtx.getImageData(0, 0, w, h).data;
+          const out  = eCtx.createImageData(w, h);
+          const od   = out.data;
+          const THRESH = 60;   // lower = more edges detected
+
+          for (let y = 1; y < h - 1; y++) {
+            for (let x = 1; x < w - 1; x++) {
+              // Sample 3x3 neighborhood (R channel only, already grayscale)
+              const g = (px, py) => gray[((py * w) + px) * 4];
+              const gx = -g(x-1,y-1) - 2*g(x-1,y) - g(x-1,y+1)
+                       +  g(x+1,y-1) + 2*g(x+1,y) + g(x+1,y+1);
+              const gy = -g(x-1,y-1) - 2*g(x,y-1) - g(x+1,y-1)
+                       +  g(x-1,y+1) + 2*g(x,y+1) + g(x+1,y+1);
+              const mag  = Math.sqrt(gx*gx + gy*gy);
+              const idx  = (y * w + x) * 4;
+              od[idx]    = 0;
+              od[idx+1]  = 0;
+              od[idx+2]  = 0;
+              od[idx+3]  = mag > THRESH ? Math.min(220, mag * 0.9) | 0 : 0;
+            }
+          }
+          eCtx.putImageData(out, 0, 0);
+
+          // ── Step 4: Composite dark edges on top of posterized base ──
+          bCtx.drawImage(edge, 0, 0);
+
+          resolve(base);
+        }, 20); // yield to browser before heavy processing
       });
-      segmenter.setOptions({ modelComplexity: 1, selfieMode: false });
-      segmenter.onResults(onSegmentationResults);
-      // Warm up the model in background
-      segmenter.initialize().then(() => {
-        mpReady = true;
-        console.log('MediaPipe ready ✅');
-      }).catch((err) => {
-        console.warn('MediaPipe init failed:', err);
-      });
-    }
-
-    // Called by MediaPipe when segmentation finishes
-    function onSegmentationResults(results) {
-      if (!userImage) return;
-
-      const w = userImage.naturalWidth  || userImage.width;
-      const h = userImage.naturalHeight || userImage.height;
-
-      // 1. Build person-only canvas with soft edges
-      const tmp    = document.createElement('canvas');
-      tmp.width    = w;
-      tmp.height   = h;
-      const tmpCtx = tmp.getContext('2d');
-
-      // Draw the original photo first
-      tmpCtx.drawImage(userImage, 0, 0, w, h);
-
-      // Apply mask with destination-in: keeps pixels where mask is bright
-      // The blur on the mask creates the soft feathered edges
-      tmpCtx.globalCompositeOperation = 'destination-in';
-      tmpCtx.filter = 'blur(5px)';  // feather amount — increase for smoother edges
-      tmpCtx.drawImage(results.segmentationMask, 0, 0, w, h);
-      tmpCtx.filter = 'none';
-      tmpCtx.globalCompositeOperation = 'source-over';
-
-      segCanvas    = tmp;
-      useSegmented = true;
-
-      // Hide loading, show controls
-      document.getElementById('ai-loading').classList.add('hidden');
-      document.getElementById('controls-panel').classList.remove('hidden');
-
-      resetPhotoTransform();
-      redrawCanvas();
     }
 
     // ─── Image upload ──────────────────────────────────────────────────────────
@@ -324,31 +337,25 @@
       const reader = new FileReader();
       reader.onload = (ev) => {
         const img  = new Image();
-        img.onload = () => {
-          userImage    = img;
-          useSegmented = false;
-          segCanvas    = null;
+        img.onload = async () => {
+          userImage     = img;
+          cartoonCanvas = null;
 
-          // Hide upload prompt immediately
+          // Hide upload prompt, show processing overlay
           document.getElementById('upload-prompt').classList.add('hidden');
           document.getElementById('controls-panel').classList.add('hidden');
+          document.getElementById('ai-loading').classList.remove('hidden');
 
-          if (mpReady && segmenter) {
-            // Show AI loading overlay and run segmentation
-            document.getElementById('ai-loading').classList.remove('hidden');
-            segmenter.send({ image: img }).catch((err) => {
-              console.warn('Segmentation failed, showing original:', err);
-              document.getElementById('ai-loading').classList.add('hidden');
-              document.getElementById('controls-panel').classList.remove('hidden');
-              resetPhotoTransform();
-              redrawCanvas();
-            });
-          } else {
-            // MediaPipe not available — show original photo with no bg removal
-            document.getElementById('controls-panel').classList.remove('hidden');
-            resetPhotoTransform();
-            redrawCanvas();
+          try {
+            cartoonCanvas = await applyCartoonEffect(img);
+          } catch (err) {
+            console.warn('Cartoon effect failed, using original:', err);
           }
+
+          document.getElementById('ai-loading').classList.add('hidden');
+          document.getElementById('controls-panel').classList.remove('hidden');
+          resetPhotoTransform();
+          redrawCanvas();
         };
         img.src = ev.target.result;
       };
@@ -357,8 +364,8 @@
 
     // ─── Transform helpers ─────────────────────────────────────────────────────
     function getDisplaySource() {
-      // Return either the segmented canvas or the original image
-      return (useSegmented && segCanvas) ? segCanvas : userImage;
+      // Return cartoon canvas if available, otherwise the original image
+      return cartoonCanvas || userImage;
     }
 
     function resetPhotoTransform() {
@@ -573,7 +580,6 @@
     // ─── Init ──────────────────────────────────────────────────────────────────
     setupCanvasSize();
     selectFrame('male');
-    initMediaPipe();
   </script>
 </body>
 </html>
