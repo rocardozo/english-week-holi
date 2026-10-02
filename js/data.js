@@ -14,10 +14,13 @@ const TEAM = {
   studentsTitle_en: 'Students — 2nd Year',
   studentsTitle_es: 'Alumnos — 2° Año',
   students: [
-    'Cardozo Rodrigo',   'Gabriela Wasquin',
-    'Leticia',           'Collante Luciano',
-    'Sofía',             'Mario',
-    'Adriana'
+    'Gabriela Wasquin',
+    'Leticia',           
+    'Collante Luciano',
+    'Sofía',             
+    'Tobi Mario',
+    'Tobi Adriana',
+    'Cardozo Rodrigo'
   ],
 };
 

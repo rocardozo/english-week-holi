@@ -193,10 +193,38 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="js/data.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/particles.js"></script>
+  <script src="js/data.js?v=2.1"></script>
+  <script src="js/i18n.js?v=2.1"></script>
+  <script src="js/particles.js?v=2.1"></script>
   <script>
+    // Fallback data in case mobile browser cached an older data.js
+    const GAME_ROUNDS = (typeof WORD_PAIRS_ROUNDS !== 'undefined' && Array.isArray(WORD_PAIRS_ROUNDS)) ? WORD_PAIRS_ROUNDS : [
+      {
+        title_en: 'Round 1: Holi Elements 🌸',
+        title_es: 'Ronda 1: Elementos de Holi 🌸',
+        pairs: [
+          { id: 'p1', emoji: '🎨', en: 'Coloured powder',  es: 'Polvo de colores' },
+          { id: 'p2', emoji: '🔥', en: 'Big bonfire',      es: 'Gran fogata' },
+          { id: 'p3', emoji: '👕', en: 'White clothes',    es: 'Ropa blanca' },
+          { id: 'p4', emoji: '🎈', en: 'Water balloons',   es: 'Globos de agua' },
+          { id: 'p5', emoji: '🍬', en: 'Sweet treats',     es: 'Golosinas ricas' },
+          { id: 'p6', emoji: '🌸', en: 'Spring season',    es: 'Estación de primavera' },
+        ]
+      },
+      {
+        title_en: 'Round 2: Actions & Fun 🎉',
+        title_es: 'Ronda 2: Acciones y Diversión 🎉',
+        pairs: [
+          { id: 'p7',  emoji: '👐', en: 'Throw powder',       es: 'Arrojar polvo' },
+          { id: 'p8',  emoji: '💃', en: 'Dance and sing',     es: 'Bailar y cantar' },
+          { id: 'p9',  emoji: '🎉', en: 'Celebrate together', es: 'Celebrar juntos' },
+          { id: 'p10', emoji: '🏆', en: 'Win a prize',        es: 'Ganar un premio' },
+          { id: 'p11', emoji: '🤝', en: 'Good friends',       es: 'Buenos amigos' },
+          { id: 'p12', emoji: '😋', en: 'Eat sweets',         es: 'Comer dulces' },
+        ]
+      }
+    ];
+
     let currentRoundIndex = 0;
     let selectedLeft = null;   // { id, el }
     let selectedRight = null;  // { id, el }
@@ -215,8 +243,8 @@
     }
 
     function initRound() {
-      const roundData = WORD_PAIRS_ROUNDS[currentRoundIndex];
-      const lang = I18N.getLang();
+      const roundData = GAME_ROUNDS[currentRoundIndex];
+      const lang = (typeof I18N !== 'undefined') ? I18N.getLang() : 'en';
 
       matchedInRound = 0;
       selectedLeft = null;
@@ -341,7 +369,7 @@
         isProcessing = false;
 
         // Check if round is finished
-        const totalInRound = WORD_PAIRS_ROUNDS[currentRoundIndex].pairs.length;
+        const totalInRound = GAME_ROUNDS[currentRoundIndex].pairs.length;
         if (matchedInRound >= totalInRound) {
           handleRoundComplete();
         }
@@ -367,7 +395,7 @@
     }
 
     function updateCounter() {
-      const totalInRound = WORD_PAIRS_ROUNDS[currentRoundIndex].pairs.length;
+      const totalInRound = GAME_ROUNDS[currentRoundIndex].pairs.length;
       const lang = I18N.getLang();
       const label = lang === 'es' ? 'Pares' : 'Pairs';
       document.getElementById('match-counter').textContent = `${matchedInRound} / ${totalInRound} ${label}`;
@@ -391,7 +419,7 @@
 
     function handleRoundComplete() {
       hideStreakBadge();
-      if (currentRoundIndex + 1 < WORD_PAIRS_ROUNDS.length) {
+      if (currentRoundIndex + 1 < GAME_ROUNDS.length) {
         const modal = document.getElementById('round-next-modal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -444,7 +472,7 @@
 
     // Live translation update
     window.addEventListener('languageChanged', () => {
-      const roundData = WORD_PAIRS_ROUNDS[currentRoundIndex];
+      const roundData = GAME_ROUNDS[currentRoundIndex];
       const lang = I18N.getLang();
       document.getElementById('round-title').textContent = lang === 'es' ? roundData.title_es : roundData.title_en;
       updateCounter();
