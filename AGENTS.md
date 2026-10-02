@@ -1,7 +1,7 @@
 # 🎨 Guidelines & Rules for Agent Development — Holi English Week 2026
 
 ## 1. 🏗️ Project Architecture & Modularity
-- **Multi-page Structure**: Keep each view/game in its own dedicated `.html` file (e.g., `index.html`, `menu.html`, `colors.html`, `trivia.html`, `mural.html`).
+- **Multi-page Structure**: Keep each view/game in its own dedicated `.html` file (e.g., `index.html`, `menu.html`, `colors.html`, `trivia.html`, `match.html`, `mural.html`).
 - **Separation of Concerns**:
   - Global styles & animations in `css/style.css`.
   - Reusable logic, animations, and particle effects in `js/particles.js`.

@@ -16,12 +16,14 @@ Holi/
 ├── menu.html        ← Menú de actividades
 ├── colors.html      ← Color Meanings (flashcards con efecto 3D flip)
 ├── trivia.html      ← Trivia Quiz (8 preguntas + pantalla de premio y confeti)
+├── match.html       ← Word Match (juego estilo Duolingo para emparejar palabras EN/ES)
 ├── mural.html       ← Colour Mural (canvas interactivo con efecto spray y descarga PNG)
 ├── holi_bg.jpg      ← Imagen de fondo
 ├── css/
 │   └── style.css    ← Estilos compartidos, animaciones y glassmorphism
 ├── js/
-│   ├── data.js      ← Datos del equipo, docente, colores y preguntas de trivia
+│   ├── data.js      ← Datos del equipo, docente, colores, trivia y pares de palabras
+│   ├── i18n.js      ← Motor bilingüe en tiempo real (Inglés / Español)
 │   └── particles.js ← Partículas de fondo animadas
 └── README.md
 ```

@@ -170,3 +170,31 @@ const TRIVIA = [
     correct: 2,
   },
 ];
+
+/** Word pairs for Match the Pairs game (Elementary Level) */
+const WORD_PAIRS_ROUNDS = [
+  {
+    title_en: 'Round 1: Holi Elements 🌸',
+    title_es: 'Ronda 1: Elementos de Holi 🌸',
+    pairs: [
+      { id: 'p1', emoji: '🎨', en: 'Coloured powder',  es: 'Polvo de colores' },
+      { id: 'p2', emoji: '🔥', en: 'Big bonfire',      es: 'Gran fogata' },
+      { id: 'p3', emoji: '👕', en: 'White clothes',    es: 'Ropa blanca' },
+      { id: 'p4', emoji: '🎈', en: 'Water balloons',   es: 'Globos de agua' },
+      { id: 'p5', emoji: '🍬', en: 'Sweet treats',     es: 'Golosinas ricas' },
+      { id: 'p6', emoji: '🌸', en: 'Spring season',    es: 'Estación de primavera' },
+    ]
+  },
+  {
+    title_en: 'Round 2: Actions & Fun 🎉',
+    title_es: 'Ronda 2: Acciones y Diversión 🎉',
+    pairs: [
+      { id: 'p7',  emoji: '👐', en: 'Throw powder',       es: 'Arrojar polvo' },
+      { id: 'p8',  emoji: '💃', en: 'Dance and sing',     es: 'Bailar y cantar' },
+      { id: 'p9',  emoji: '🎉', en: 'Celebrate together', es: 'Celebrar juntos' },
+      { id: 'p10', emoji: '🏆', en: 'Win a prize',        es: 'Ganar un premio' },
+      { id: 'p11', emoji: '🤝', en: 'Good friends',       es: 'Buenos amigos' },
+      { id: 'p12', emoji: '😋', en: 'Eat sweets',         es: 'Comer dulces' },
+    ]
+  }
+];
