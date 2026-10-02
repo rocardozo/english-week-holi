@@ -43,6 +43,9 @@
   <!-- ─── Shared Stylesheet ────────────────────────────────────────────── -->
   <link rel="stylesheet" href="css/style.css" />
 
+  <!-- ─── MediaPipe Selfie Segmentation ──────────────────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+
   <style>
     .frame-thumbnail {
       transition: all 0.2s ease;
@@ -53,6 +56,13 @@
       box-shadow: 0 0 16px rgba(0, 229, 255, 0.6);
       transform: scale(1.05);
     }
+    /* ── AI Loading overlay ── */
+    #ai-loading {
+      background: rgba(26, 5, 51, 0.92);
+      backdrop-filter: blur(8px);
+    }
+    @keyframes spin-slow { to { transform: rotate(360deg); } }
+    .spin-slow { animation: spin-slow 1.4s linear infinite; }
   </style>
 </head>
 
@@ -126,6 +136,13 @@
       <!-- Main Rendering Canvas -->
       <canvas id="photo-canvas" class="w-full h-full block touch-none cursor-move"></canvas>
 
+      <!-- AI Processing overlay -->
+      <div id="ai-loading" class="hidden absolute inset-0 flex flex-col items-center justify-center z-30 gap-3">
+        <div class="text-5xl spin-slow">✨</div>
+        <p class="font-black text-white text-base" data-i18n-en="Removing background…" data-i18n-es="Eliminando fondo…">Removing background…</p>
+        <p class="text-white/60 text-xs text-center px-6" data-i18n-en="AI magic in progress — this takes just a second!" data-i18n-es="¡Magia de IA en progreso — solo tarda un segundo!">AI magic in progress — this takes just a second!</p>
+      </div>
+
       <!-- Placeholder overlay before uploading photo -->
       <div id="upload-prompt" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[#1A0533]/85 backdrop-blur-sm z-20 gap-4">
         <div class="text-6xl animate-bounce">📸</div>
@@ -134,10 +151,10 @@
              data-i18n-en="Take a Selfie!"
              data-i18n-es="¡Sácate una Selfie!">Take a Selfie!</p>
           <p class="text-white/70 text-xs sm:text-sm mt-1 max-w-xs"
-             data-i18n-en="Use your camera or pick a photo from your gallery to place your face in the outfit."
-             data-i18n-es="Usa tu cámara o elige una foto de tu galería para colocar tu rostro en el traje.">Use your camera or pick a photo from your gallery to place your face in the outfit.</p>
+             data-i18n-en="Our AI removes the background — only YOU in the outfit!"
+             data-i18n-es="¡Nuestra IA elimina el fondo — solo VOS en el traje!">Our AI removes the background — only YOU in the outfit!</p>
         </div>
-        
+
         <div class="flex flex-col sm:flex-row gap-2 w-full justify-center items-center">
           <!-- Camera button (mobile front camera) -->
           <label class="btn-holi glass rounded-2xl px-5 py-3 text-sm font-black text-white bg-gradient-to-r from-holi-pink via-holi-orange to-holi-yellow shadow-xl cursor-pointer flex items-center gap-2 animate-pulse-glow">
@@ -152,6 +169,8 @@
             <input id="gallery-input" type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
           </label>
         </div>
+
+        <p class="text-white/40 text-[10px]" data-i18n-en="✨ AI background removal powered by MediaPipe" data-i18n-es="✨ Eliminación de fondo con IA — MediaPipe">✨ AI background removal powered by MediaPipe</p>
       </div>
     </div>
 
@@ -207,101 +226,161 @@
 
   <script>
     const canvas = document.getElementById('photo-canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx    = canvas.getContext('2d');
 
-    // Frames configuration
+    // ─── Frame configuration ───────────────────────────────────────────────────
+    // hole coords are normalized (0-1) relative to canvas width/height
     const FRAMES = {
       male: {
-        src: 'img/frame_male.jpg',
-        hole: { x: 0.50, y: 0.22, rx: 0.16, ry: 0.13 } // normalized oval center and radii
+        src:  'img/frame_male.jpg',
+        hole: { x: 0.50, y: 0.22, rx: 0.16, ry: 0.13 }
       },
       female: {
-        src: 'img/frame_female.jpg',
+        src:  'img/frame_female.jpg',
         hole: { x: 0.50, y: 0.32, rx: 0.14, ry: 0.13 }
       },
       festive: {
-        src: 'img/frame_festive.jpg',
+        src:  'img/frame_festive.jpg',
         hole: { x: 0.50, y: 0.48, rx: 0.28, ry: 0.25 }
       }
     };
 
     let activeFrameKey = 'male';
-    let frameImage = new Image();
-    let userImage = null;
+    let frameImage     = new Image();
+    let userImage      = null;   // original Image element
+    let segCanvas      = null;   // person-only canvas (transparent bg)
+    let useSegmented   = false;  // true when MediaPipe succeeded
 
-    // User photo transform state
-    let userPhotoPos = { x: 0, y: 0 };
+    // Transform state
+    let userPhotoPos   = { x: 0, y: 0 };
     let userPhotoScale = 1.0;
-    let isDragging = false;
-    let dragStart = { x: 0, y: 0 };
+    let isDragging     = false;
+    let dragStart      = { x: 0, y: 0 };
 
-    function selectFrame(key) {
-      if (!FRAMES[key]) return;
-      activeFrameKey = key;
-      
-      document.querySelectorAll('.frame-thumbnail').forEach(t => t.classList.remove('active'));
-      const activeThumb = document.getElementById('thumb-' + key);
-      if (activeThumb) activeThumb.classList.add('active');
+    // ─── MediaPipe Selfie Segmentation ────────────────────────────────────────
+    let segmenter = null;
+    let mpReady   = false;
 
-      loadFrameImage(FRAMES[key].src);
+    function initMediaPipe() {
+      if (typeof SelfieSegmentation === 'undefined') {
+        console.warn('MediaPipe not loaded — background removal unavailable.');
+        return;
+      }
+      segmenter = new SelfieSegmentation({
+        locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${f}`
+      });
+      segmenter.setOptions({ modelComplexity: 1, selfieMode: false });
+      segmenter.onResults(onSegmentationResults);
+      // Warm up the model in background
+      segmenter.initialize().then(() => {
+        mpReady = true;
+        console.log('MediaPipe ready ✅');
+      }).catch((err) => {
+        console.warn('MediaPipe init failed:', err);
+      });
     }
 
-    function loadFrameImage(src) {
-      frameImage = new Image();
-      frameImage.onload = () => {
-        setupCanvasSize();
-        redrawCanvas();
-      };
-      frameImage.src = src;
+    // Called by MediaPipe when segmentation finishes
+    function onSegmentationResults(results) {
+      if (!userImage) return;
+
+      const w = userImage.naturalWidth  || userImage.width;
+      const h = userImage.naturalHeight || userImage.height;
+
+      // 1. Build person-only canvas with soft edges
+      const tmp    = document.createElement('canvas');
+      tmp.width    = w;
+      tmp.height   = h;
+      const tmpCtx = tmp.getContext('2d');
+
+      // Draw the original photo first
+      tmpCtx.drawImage(userImage, 0, 0, w, h);
+
+      // Apply mask with destination-in: keeps pixels where mask is bright
+      // The blur on the mask creates the soft feathered edges
+      tmpCtx.globalCompositeOperation = 'destination-in';
+      tmpCtx.filter = 'blur(5px)';  // feather amount — increase for smoother edges
+      tmpCtx.drawImage(results.segmentationMask, 0, 0, w, h);
+      tmpCtx.filter = 'none';
+      tmpCtx.globalCompositeOperation = 'source-over';
+
+      segCanvas    = tmp;
+      useSegmented = true;
+
+      // Hide loading, show controls
+      document.getElementById('ai-loading').classList.add('hidden');
+      document.getElementById('controls-panel').classList.remove('hidden');
+
+      resetPhotoTransform();
+      redrawCanvas();
     }
 
-    function setupCanvasSize() {
-      // High-res internal rendering for crisp downloads
-      canvas.width = 900;
-      canvas.height = 1200;
-    }
-
-    // ─── Image loading ─────────────────────────────────────────────────────────
+    // ─── Image upload ──────────────────────────────────────────────────────────
     function handleImageUpload(e) {
       const file = e.target.files && e.target.files[0];
-      // Reset input value immediately so the same file / camera re-open works
-      e.target.value = '';
+      e.target.value = '';      // reset so same photo can be re-selected
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
+      reader.onload = (ev) => {
+        const img  = new Image();
         img.onload = () => {
-          userImage = img;
+          userImage    = img;
+          useSegmented = false;
+          segCanvas    = null;
+
+          // Hide upload prompt immediately
           document.getElementById('upload-prompt').classList.add('hidden');
-          document.getElementById('controls-panel').classList.remove('hidden');
-          resetPhotoTransform();
-          redrawCanvas();
+          document.getElementById('controls-panel').classList.add('hidden');
+
+          if (mpReady && segmenter) {
+            // Show AI loading overlay and run segmentation
+            document.getElementById('ai-loading').classList.remove('hidden');
+            segmenter.send({ image: img }).catch((err) => {
+              console.warn('Segmentation failed, showing original:', err);
+              document.getElementById('ai-loading').classList.add('hidden');
+              document.getElementById('controls-panel').classList.remove('hidden');
+              resetPhotoTransform();
+              redrawCanvas();
+            });
+          } else {
+            // MediaPipe not available — show original photo with no bg removal
+            document.getElementById('controls-panel').classList.remove('hidden');
+            resetPhotoTransform();
+            redrawCanvas();
+          }
         };
-        img.src = event.target.result;
+        img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
     }
 
     // ─── Transform helpers ─────────────────────────────────────────────────────
+    function getDisplaySource() {
+      // Return either the segmented canvas or the original image
+      return (useSegmented && segCanvas) ? segCanvas : userImage;
+    }
+
     function resetPhotoTransform() {
-      if (!userImage) return;
-      const hole = FRAMES[activeFrameKey].hole;
-      const targetCenterX = canvas.width * hole.x;
+      const src = getDisplaySource();
+      if (!src) return;
+
+      const hole        = FRAMES[activeFrameKey].hole;
+      const targetCenterX = canvas.width  * hole.x;
       const targetCenterY = canvas.height * hole.y;
 
-      // Fit so the shorter edge of the photo fills the hole diameter
-      const targetWidth = canvas.width * (hole.rx * 2.6);
-      userPhotoScale = targetWidth / userImage.width;
+      // Scale so the person fits nicely in the hole (slightly larger than the oval)
+      const targetWidth = canvas.width * (hole.rx * 2.8);
+      userPhotoScale    = targetWidth / src.width;
 
-      userPhotoPos.x = targetCenterX - (userImage.width  * userPhotoScale) / 2;
-      userPhotoPos.y = targetCenterY - (userImage.height * userPhotoScale) / 2;
+      userPhotoPos.x = targetCenterX - (src.width  * userPhotoScale) / 2;
+      userPhotoPos.y = targetCenterY - (src.height * userPhotoScale) / 2;
 
-      const slider = document.getElementById('zoom-slider');
-      slider.min   = 0.2;
-      slider.max   = 4;
-      slider.step  = 0.02;
-      slider.value = userPhotoScale;
+      const slider   = document.getElementById('zoom-slider');
+      slider.min     = 0.2;
+      slider.max     = 4;
+      slider.step    = 0.02;
+      slider.value   = userPhotoScale;
     }
 
     function resetZoom() {
@@ -313,47 +392,71 @@
     function redrawCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 1. Draw user photo underneath
-      if (userImage) {
+      const src = getDisplaySource();
+
+      // 1. Draw user photo / segmented person underneath
+      if (src) {
         ctx.drawImage(
-          userImage,
+          src,
           userPhotoPos.x, userPhotoPos.y,
-          userImage.width  * userPhotoScale,
-          userImage.height * userPhotoScale
+          src.width  * userPhotoScale,
+          src.height * userPhotoScale
         );
       }
 
       // 2. Draw outfit frame with transparent oval hole
       if (frameImage && frameImage.complete) {
-        const offCanvas  = document.createElement('canvas');
-        offCanvas.width  = canvas.width;
-        offCanvas.height = canvas.height;
-        const offCtx = offCanvas.getContext('2d');
+        const off    = document.createElement('canvas');
+        off.width    = canvas.width;
+        off.height   = canvas.height;
+        const offCtx = off.getContext('2d');
 
-        offCtx.drawImage(frameImage, 0, 0, offCanvas.width, offCanvas.height);
+        offCtx.drawImage(frameImage, 0, 0, off.width, off.height);
 
+        // Cut out oval hole so person shows through
         const hole = FRAMES[activeFrameKey].hole;
         offCtx.globalCompositeOperation = 'destination-out';
         offCtx.beginPath();
         offCtx.ellipse(
-          offCanvas.width  * hole.x,
-          offCanvas.height * hole.y,
-          offCanvas.width  * hole.rx,
-          offCanvas.height * hole.ry,
+          off.width  * hole.x,
+          off.height * hole.y,
+          off.width  * hole.rx,
+          off.height * hole.ry,
           0, 0, Math.PI * 2
         );
         offCtx.fill();
 
-        ctx.drawImage(offCanvas, 0, 0);
+        ctx.drawImage(off, 0, 0);
       }
 
       // 3. Festive watermark
       ctx.fillStyle = 'rgba(26, 5, 51, 0.75)';
       ctx.fillRect(0, canvas.height - 70, canvas.width, 70);
-      ctx.font = 'bold 28px Outfit, sans-serif';
+      ctx.font      = 'bold 28px Outfit, sans-serif';
       ctx.fillStyle = '#FFD700';
       ctx.textAlign = 'center';
       ctx.fillText('English Week 2026 • Instituto de Idiomas de Salta', canvas.width / 2, canvas.height - 26);
+    }
+
+    // ─── Frame selection ───────────────────────────────────────────────────────
+    function selectFrame(key) {
+      if (!FRAMES[key]) return;
+      activeFrameKey = key;
+      document.querySelectorAll('.frame-thumbnail').forEach(t => t.classList.remove('active'));
+      const thumb = document.getElementById('thumb-' + key);
+      if (thumb) thumb.classList.add('active');
+      loadFrameImage(FRAMES[key].src);
+    }
+
+    function loadFrameImage(src) {
+      frameImage        = new Image();
+      frameImage.onload = () => { setupCanvasSize(); redrawCanvas(); };
+      frameImage.src    = src;
+    }
+
+    function setupCanvasSize() {
+      canvas.width  = 900;
+      canvas.height = 1200;
     }
 
     // ─── Coordinate helper ─────────────────────────────────────────────────────
@@ -369,16 +472,16 @@
 
     // ─── Mouse drag ────────────────────────────────────────────────────────────
     canvas.addEventListener('mousedown', (e) => {
-      if (!userImage) return;
-      isDragging = true;
-      const pos = getCanvasCoords(e.clientX, e.clientY);
+      if (!getDisplaySource()) return;
+      isDragging  = true;
+      const pos   = getCanvasCoords(e.clientX, e.clientY);
       dragStart.x = pos.x - userPhotoPos.x;
       dragStart.y = pos.y - userPhotoPos.y;
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (!isDragging || !userImage) return;
-      const pos = getCanvasCoords(e.clientX, e.clientY);
+      if (!isDragging || !getDisplaySource()) return;
+      const pos      = getCanvasCoords(e.clientX, e.clientY);
       userPhotoPos.x = pos.x - dragStart.x;
       userPhotoPos.y = pos.y - dragStart.y;
       redrawCanvas();
@@ -389,63 +492,44 @@
     // ─── Touch drag + pinch-to-zoom ────────────────────────────────────────────
     let lastPinchDist = null;
 
-    function getTouchDist(touches) {
-      const dx = touches[0].clientX - touches[1].clientX;
-      const dy = touches[0].clientY - touches[1].clientY;
-      return Math.hypot(dx, dy);
+    function getTouchDist(t) {
+      return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     }
-
-    function getTouchMidpoint(touches) {
-      return {
-        x: (touches[0].clientX + touches[1].clientX) / 2,
-        y: (touches[0].clientY + touches[1].clientY) / 2,
-      };
+    function getTouchMid(t) {
+      return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 };
     }
 
     canvas.addEventListener('touchstart', (e) => {
-      if (!userImage) return;
+      if (!getDisplaySource()) return;
       if (e.touches.length === 2) {
-        // Start pinch
-        isDragging = false;
+        isDragging    = false;
         lastPinchDist = getTouchDist(e.touches);
       } else {
-        // Start drag
-        isDragging = true;
+        isDragging    = true;
         lastPinchDist = null;
-        const pos = getCanvasCoords(e.touches[0].clientX, e.touches[0].clientY);
-        dragStart.x = pos.x - userPhotoPos.x;
-        dragStart.y = pos.y - userPhotoPos.y;
+        const pos     = getCanvasCoords(e.touches[0].clientX, e.touches[0].clientY);
+        dragStart.x   = pos.x - userPhotoPos.x;
+        dragStart.y   = pos.y - userPhotoPos.y;
       }
     }, { passive: true });
 
     canvas.addEventListener('touchmove', (e) => {
-      if (!userImage) return;
-
+      if (!getDisplaySource()) return;
       if (e.touches.length === 2 && lastPinchDist !== null) {
-        // ── Pinch zoom ──
-        const newDist  = getTouchDist(e.touches);
-        const ratio    = newDist / lastPinchDist;
-        lastPinchDist  = newDist;
-
-        const mid    = getTouchMidpoint(e.touches);
-        const midPos = getCanvasCoords(mid.x, mid.y);
-
+        const newDist   = getTouchDist(e.touches);
+        const ratio     = newDist / lastPinchDist;
+        lastPinchDist   = newDist;
+        const mid       = getTouchMid(e.touches);
+        const midPos    = getCanvasCoords(mid.x, mid.y);
         const oldScale  = userPhotoScale;
-        let   newScale  = oldScale * ratio;
-        newScale = Math.max(0.2, Math.min(4, newScale));
-
-        // Zoom anchored to pinch midpoint
-        userPhotoPos.x = midPos.x - (midPos.x - userPhotoPos.x) * (newScale / oldScale);
-        userPhotoPos.y = midPos.y - (midPos.y - userPhotoPos.y) * (newScale / oldScale);
-        userPhotoScale = newScale;
-
-        // Sync slider
+        let   newScale  = Math.max(0.2, Math.min(4, oldScale * ratio));
+        userPhotoPos.x  = midPos.x - (midPos.x - userPhotoPos.x) * (newScale / oldScale);
+        userPhotoPos.y  = midPos.y - (midPos.y - userPhotoPos.y) * (newScale / oldScale);
+        userPhotoScale  = newScale;
         document.getElementById('zoom-slider').value = newScale;
         redrawCanvas();
-
       } else if (e.touches.length === 1 && isDragging) {
-        // ── Drag ──
-        const pos = getCanvasCoords(e.touches[0].clientX, e.touches[0].clientY);
+        const pos      = getCanvasCoords(e.touches[0].clientX, e.touches[0].clientY);
         userPhotoPos.x = pos.x - dragStart.x;
         userPhotoPos.y = pos.y - dragStart.y;
         redrawCanvas();
@@ -459,41 +543,37 @@
 
     // ─── Slider zoom ───────────────────────────────────────────────────────────
     function onZoomChange(val) {
-      if (!userImage) return;
+      if (!getDisplaySource()) return;
       const oldScale = userPhotoScale;
       userPhotoScale = parseFloat(val);
-
-      // Keep zoom anchored on the hole centre
-      const hole    = FRAMES[activeFrameKey].hole;
-      const centerX = canvas.width  * hole.x;
-      const centerY = canvas.height * hole.y;
-
-      userPhotoPos.x = centerX - (centerX - userPhotoPos.x) * (userPhotoScale / oldScale);
-      userPhotoPos.y = centerY - (centerY - userPhotoPos.y) * (userPhotoScale / oldScale);
-
+      const hole     = FRAMES[activeFrameKey].hole;
+      const cx       = canvas.width  * hole.x;
+      const cy       = canvas.height * hole.y;
+      userPhotoPos.x = cx - (cx - userPhotoPos.x) * (userPhotoScale / oldScale);
+      userPhotoPos.y = cy - (cy - userPhotoPos.y) * (userPhotoScale / oldScale);
       redrawCanvas();
     }
 
     function adjustZoom(delta) {
-      const slider = document.getElementById('zoom-slider');
-      let newVal = parseFloat(slider.value) + delta;
-      newVal = Math.max(0.2, Math.min(4, newVal));
-      slider.value = newVal;
+      const slider  = document.getElementById('zoom-slider');
+      const newVal  = Math.max(0.2, Math.min(4, parseFloat(slider.value) + delta));
+      slider.value  = newVal;
       onZoomChange(newVal);
     }
 
     // ─── Download ──────────────────────────────────────────────────────────────
     function downloadSouvenir() {
       redrawCanvas();
-      const link = document.createElement('a');
+      const link    = document.createElement('a');
       link.download = 'happy-holi-2026-souvenir.png';
-      link.href = canvas.toDataURL('image/png');
+      link.href     = canvas.toDataURL('image/png');
       link.click();
     }
 
     // ─── Init ──────────────────────────────────────────────────────────────────
     setupCanvasSize();
     selectFrame('male');
+    initMediaPipe();
   </script>
 </body>
 </html>
