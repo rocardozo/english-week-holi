@@ -62,6 +62,11 @@
     </a>
     
     <div class="flex items-center gap-2">
+      <!-- Sound toggle button -->
+      <button id="sound-toggle-btn" onclick="toggleSound()" class="glass px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 hover:border-holi-cyan transition-all flex items-center gap-1" title="Toggle sound">
+        🔊 <span class="text-holi-yellow text-[10px] font-bold">Sound</span>
+      </button>
+
       <button onclick="I18N.toggleLang()" class="lang-toggle-btn glass px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 hover:border-holi-yellow transition-all flex items-center gap-1">
         🇬🇧 <span class="font-bold text-holi-yellow">EN</span> / <span class="opacity-60">ES</span>
       </button>
@@ -169,7 +174,142 @@
     let triviaLocked = false;
     let selectedAnswer = null;
 
+    // ─── Sound System (Web Audio API - 100% Offline & Pure Synth) ──────────────
+    let audioCtx = null;
+    let isMuted = (localStorage.getItem('holi_sound_muted') || localStorage.getItem('holi_match_muted')) === 'true';
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          audioCtx = new AudioContext();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function toggleSound() {
+      isMuted = !isMuted;
+      localStorage.setItem('holi_sound_muted', isMuted);
+      localStorage.setItem('holi_match_muted', isMuted);
+      updateSoundButton();
+      if (!isMuted) {
+        playSelectSound();
+      }
+    }
+
+    function updateSoundButton() {
+      const btn = document.getElementById('sound-toggle-btn');
+      if (btn) {
+        btn.innerHTML = isMuted 
+          ? '🔇 <span class="opacity-60 text-[10px]">Mute</span>' 
+          : '🔊 <span class="text-holi-yellow text-[10px] font-bold">Sound</span>';
+      }
+    }
+
+    // Sound: Click / Next Button (tiny pop)
+    function playSelectSound() {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.05);
+
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+      } catch (e) {}
+    }
+
+    // Sound: Correct Answer (Bright major arpeggio chime: E5 -> G5 -> C6)
+    function playCorrectSound() {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const notes = [659.25, 783.99, 1046.50]; // E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const startTime = ctx.currentTime + (idx * 0.07);
+          const duration = 0.28;
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.001, startTime);
+          gain.gain.linearRampToValueAtTime(0.16, startTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + duration);
+        });
+      } catch (e) {}
+    }
+
+    // Sound: Incorrect Answer (Soft subtle low double tap)
+    function playErrorSound() {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.16);
+
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.16);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.16);
+      } catch (e) {}
+    }
+
+    // Sound: Victory / Quiz Complete Fanfare
+    function playVictorySound() {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const chord = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        chord.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const t = ctx.currentTime + (i * 0.08);
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+
+          gain.gain.setValueAtTime(0.001, t);
+          gain.gain.linearRampToValueAtTime(0.18, t + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.45);
+        });
+      } catch (e) {}
+    }
+
     function renderTriviaQuestion() {
+      updateSoundButton();
       if (triviaIndex >= TRIVIA.length) {
         showResults();
         return;
@@ -245,12 +385,18 @@
 
       const q = TRIVIA[triviaIndex];
       const isRight = chosen === q.correct;
-      if (isRight) triviaScore++;
+      if (isRight) {
+        triviaScore++;
+        playCorrectSound();
+      } else {
+        playErrorSound();
+      }
 
       renderTriviaQuestion();
     }
 
     function triviaNext() {
+      playSelectSound();
       triviaIndex++;
       triviaLocked = false;
       selectedAnswer = null;
@@ -258,6 +404,7 @@
     }
 
     function showResults() {
+      playVictorySound();
       const lang = I18N.getLang();
       document.getElementById('quiz-section').classList.add('hidden');
       const winSec = document.getElementById('winner-section');
@@ -282,6 +429,7 @@
     }
 
     function restartQuiz() {
+      playSelectSound();
       triviaIndex = 0;
       triviaScore = 0;
       triviaLocked = false;
