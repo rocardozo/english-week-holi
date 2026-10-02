@@ -62,6 +62,15 @@
   <!-- PARTICLES CANVAS -->
   <canvas id="particles-canvas"></canvas>
 
+  <!-- TOP BAR WITH LANGUAGE SWITCH -->
+  <header class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 pointer-events-none">
+    <div class="pointer-events-auto"></div>
+    <!-- Language toggle -->
+    <button onclick="I18N.toggleLang()" class="lang-toggle-btn pointer-events-auto glass px-3.5 py-1.5 rounded-full text-xs font-bold border border-white/20 hover:border-holi-yellow transition-all shadow-lg flex items-center gap-1.5">
+      🇬🇧 <span class="font-bold text-holi-yellow">EN</span> / <span class="opacity-60">ES</span>
+    </button>
+  </header>
+
   <!-- HERO SECTION -->
   <main class="relative min-h-screen flex flex-col items-center justify-center z-10">
     <div class="relative w-full flex-1 flex flex-col items-center justify-center min-h-screen overflow-hidden">
@@ -79,18 +88,20 @@
       <div class="relative z-10 flex flex-col items-center justify-center gap-6 px-4 py-16 text-center">
         <div class="text-6xl sm:text-7xl animate-bounce-in">🌈</div>
         
-        <h1 class="font-outfit font-black text-4xl sm:text-6xl md:text-7xl leading-tight grad-text drop-shadow-2xl animate-fade-up">
+        <h1 class="font-outfit font-black text-4xl sm:text-6xl md:text-7xl leading-tight grad-text drop-shadow-2xl animate-fade-up"
+            data-i18n-en="Happy<br/>Holi!"
+            data-i18n-es="¡Feliz<br/>Holi!">
           Happy<br/>Holi!
         </h1>
         
         <p class="text-white/90 font-semibold text-base sm:text-xl max-w-sm animate-fade-up" style="animation-delay:.1s">
-          A vibrant journey through the<br/>
-          <span class="text-holi-yellow font-bold">Festival of Colours</span>
+          <span data-i18n-en="A vibrant journey through the" data-i18n-es="Un viaje vibrante a través del">A vibrant journey through the</span><br/>
+          <span class="text-holi-yellow font-bold" data-i18n-en="Festival of Colours" data-i18n-es="Festival de los Colores">Festival of Colours</span>
         </p>
 
         <!-- Location Badge -->
         <div class="glass rounded-2xl px-5 py-3 animate-fade-up" style="animation-delay:.2s">
-          <p class="text-xs text-white/60 uppercase tracking-widest">English Week 2026</p>
+          <p class="text-xs text-white/60 uppercase tracking-widest" data-i18n-en="English Week 2026" data-i18n-es="Semana de Inglés 2026">English Week 2026</p>
           <a href="https://maps.app.goo.gl/search/?api=1&query=Escuela+4643+Dr+Joaquin+Castellanos+Salta" target="_blank" rel="noopener" class="text-white font-bold text-sm mt-0.5 underline decoration-dotted underline-offset-2 hover:text-holi-yellow transition-colors inline-block">
             Instituto de Idiomas de Salta 📍
           </a>
@@ -101,11 +112,15 @@
            class="btn-holi mt-2 glass rounded-2xl px-8 py-4 text-lg font-black tracking-wide
                   bg-gradient-to-r from-holi-pink via-holi-orange to-holi-yellow
                   shadow-lg animate-pulse-glow animate-fade-up text-white"
-           style="animation-delay:.3s">
+           style="animation-delay:.3s"
+           data-i18n-en="Let's Celebrate! 🎉"
+           data-i18n-es="¡A Celebrar! 🎉">
           Let's Celebrate! 🎉
         </a>
 
-        <a href="#credits" class="text-white/50 hover:text-white text-xs mt-2 transition-colors animate-fade-up" style="animation-delay:.5s">
+        <a href="#credits" class="text-white/50 hover:text-white text-xs mt-2 transition-colors animate-fade-up" style="animation-delay:.5s"
+           data-i18n-en="↓ scroll for credits"
+           data-i18n-es="↓ desliza para ver los créditos">
           ↓ scroll for credits
         </a>
       </div>
@@ -114,36 +129,48 @@
     <!-- CREDITS SECTION -->
     <section id="credits" class="relative z-10 w-full px-4 pb-16 pt-12" style="background: linear-gradient(to bottom, #1A0533, #230840);">
       <div class="max-w-lg mx-auto">
-        <h2 class="text-center font-black text-2xl sm:text-3xl grad-text mb-8">Our Amazing Team</h2>
+        <h2 class="text-center font-black text-2xl sm:text-3xl grad-text mb-8"
+            data-i18n-en="Our Amazing Team"
+            data-i18n-es="Nuestro Increíble Equipo">Our Amazing Team</h2>
 
         <!-- Teacher card -->
         <div class="glass rounded-2xl p-5 mb-6 border border-holi-purple/40 text-center">
           <div class="text-4xl mb-2">👩‍🏫</div>
-          <p class="text-xs uppercase tracking-widest text-holi-cyan/80 mb-1">English Teacher</p>
+          <p id="teacher-role" class="text-xs uppercase tracking-widest text-holi-cyan/80 mb-1"
+             data-i18n-en="English Teacher"
+             data-i18n-es="Profesora de Inglés">English Teacher</p>
           <p class="font-bold text-xl text-holi-yellow">Prof. Cynthia Maurizzio</p>
-          <p class="text-white/50 text-xs mt-1">Thank you for making this possible! 🙌</p>
+          <p id="teacher-thanks" class="text-white/50 text-xs mt-1"
+             data-i18n-en="Thank you for making this possible! 🙌"
+             data-i18n-es="¡Gracias por hacer esto posible! 🙌">Thank you for making this possible! 🙌</p>
         </div>
 
         <!-- Students grid -->
-        <h3 class="text-center text-white/70 text-sm uppercase tracking-widest mb-4">Students — 2nd Year</h3>
+        <h3 id="students-heading" class="text-center text-white/70 text-sm uppercase tracking-widest mb-4"
+            data-i18n-en="Students — 2nd Year"
+            data-i18n-es="Alumnos — 2° Año">Students — 2nd Year</h3>
         <div class="grid grid-cols-2 gap-3" id="students-grid"></div>
 
         <div class="mt-8 text-center">
-          <a href="menu.html" class="btn-holi glass rounded-xl px-6 py-3 font-bold text-sm text-holi-yellow border border-holi-yellow/30 hover:border-holi-yellow">
+          <a href="menu.html" class="btn-holi glass rounded-xl px-6 py-3 font-bold text-sm text-holi-yellow border border-holi-yellow/30 hover:border-holi-yellow"
+             data-i18n-en="Explore Activities →"
+             data-i18n-es="Explorar Actividades →">
             Explore Activities →
           </a>
         </div>
 
-        <p class="text-center text-white/30 text-xs mt-8">Made with love for English Week 2026</p>
+        <p class="text-center text-white/30 text-xs mt-8"
+           data-i18n-en="Made with love for English Week 2026"
+           data-i18n-es="Hecho con cariño para English Week 2026">Made with love for English Week 2026</p>
       </div>
     </section>
   </main>
 
   <!-- Scripts -->
   <script src="js/data.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/particles.js"></script>
   <script>
-    // Render students from data.js
     (function renderStudents() {
       const STUDENT_COLORS = [
         'from-holi-pink/20 to-holi-orange/20 border-holi-pink/30',

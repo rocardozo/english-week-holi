@@ -50,22 +50,35 @@
   <canvas id="particles-canvas"></canvas>
 
   <!-- NAVBAR -->
-  <nav class="relative z-20 glass flex items-center justify-between px-5 py-3">
-    <a href="menu.html" class="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors">
+  <nav class="relative z-20 glass flex items-center justify-between px-4 py-3">
+    <a href="menu.html" class="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors"
+       data-i18n-en="← Menu"
+       data-i18n-es="← Menú">
       <span>←</span>
       <span>Menu</span>
     </a>
-    <span class="font-bold text-sm text-holi-pink">Color Meanings</span>
-    <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg glass border border-white/20 hover:border-white text-white/80 hover:text-white transition-all">
-      Home 🏠
-    </a>
+    
+    <div class="flex items-center gap-2">
+      <button onclick="I18N.toggleLang()" class="lang-toggle-btn glass px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 hover:border-holi-yellow transition-all flex items-center gap-1">
+        🇬🇧 <span class="font-bold text-holi-yellow">EN</span> / <span class="opacity-60">ES</span>
+      </button>
+      <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg glass border border-white/20 hover:border-white text-white/80 hover:text-white transition-all"
+         data-i18n-en="Home 🏠"
+         data-i18n-es="Inicio 🏠">
+        Home 🏠
+      </a>
+    </div>
   </nav>
 
   <!-- MAIN CONTENT -->
   <main class="relative z-10 max-w-lg w-full mx-auto px-4 py-8 flex flex-col gap-6">
     <div class="text-center">
-      <h1 class="font-black text-3xl sm:text-4xl grad-text">Color Meanings 🌸</h1>
-      <p class="text-white/70 text-sm mt-2">Tap any card to flip it and reveal what it symbolises!</p>
+      <h1 class="font-black text-3xl sm:text-4xl grad-text"
+          data-i18n-en="Color Meanings 🌸"
+          data-i18n-es="Significado de los Colores 🌸">Color Meanings 🌸</h1>
+      <p class="text-white/70 text-sm mt-2"
+         data-i18n-en="Tap any card to flip it and reveal what it symbolises!"
+         data-i18n-es="¡Toca cualquier tarjeta para girarla y descubrir qué simboliza!">Tap any card to flip it and reveal what it symbolises!</p>
     </div>
 
     <!-- Cards Grid -->
@@ -73,7 +86,9 @@
 
     <!-- Back to Menu Button -->
     <div class="text-center mt-4">
-      <a href="menu.html" class="btn-holi glass rounded-xl px-8 py-3 text-white/90 font-bold text-sm border border-holi-pink/40 hover:border-holi-pink">
+      <a href="menu.html" class="btn-holi glass rounded-xl px-8 py-3 text-white/90 font-bold text-sm border border-holi-pink/40 hover:border-holi-pink"
+         data-i18n-en="← Back to Activities Menu"
+         data-i18n-es="← Volver al Menú de Actividades">
         ← Back to Activities Menu
       </a>
     </div>
@@ -86,16 +101,24 @@
 
   <!-- Scripts -->
   <script src="js/data.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/particles.js"></script>
   <script>
-    (function renderColorCards() {
+    function renderColorCards() {
       const grid = document.getElementById('color-cards-grid');
+      const lang = I18N.getLang();
+      grid.innerHTML = '';
 
       COLOR_DATA.forEach(function(c) {
+        const name = lang === 'es' ? c.name_es : c.name_en;
+        const short = lang === 'es' ? c.short_es : c.short_en;
+        const detail = lang === 'es' ? c.detail_es : c.detail_en;
+        const tapLabel = lang === 'es' ? 'Tocar para girar ↺' : 'Tap to flip ↺';
+
         const wrapper = document.createElement('div');
         wrapper.className = 'color-card w-full h-48';
         wrapper.setAttribute('role', 'button');
-        wrapper.setAttribute('aria-label', c.name + ' colour card — tap to flip');
+        wrapper.setAttribute('aria-label', name + ' colour card — tap to flip');
         wrapper.setAttribute('tabindex', '0');
         wrapper.onclick = function() { wrapper.classList.toggle('flipped'); };
         wrapper.onkeydown = function(e) {
@@ -107,19 +130,25 @@
             '<div class="color-card-front" style="background:linear-gradient(135deg,' + c.color + '33,' + c.color + '11);border:2px solid ' + c.color + '66;">' +
               '<span class="text-4xl mb-1">' + c.emoji + '</span>' +
               '<div class="w-8 h-8 rounded-full mb-2 shadow-lg" style="background:' + c.color + ';box-shadow:0 0 16px ' + c.color + 'aa;"></div>' +
-              '<p class="font-black text-lg text-white">' + c.name + '</p>' +
-              '<p class="text-xs text-white/60 mt-1">Tap to flip ↺</p>' +
+              '<p class="font-black text-lg text-white">' + name + '</p>' +
+              '<p class="text-xs text-white/60 mt-1">' + tapLabel + '</p>' +
             '</div>' +
             '<div class="color-card-back text-center" style="background:linear-gradient(135deg,' + c.color + '55,' + c.color + '22);border:2px solid ' + c.color + '99;">' +
-              '<p class="font-black text-base text-white mb-1" style="text-shadow:0 0 12px ' + c.color + '">' + c.name + '</p>' +
-              '<p class="font-bold text-xs mb-2" style="color:' + c.color + '">' + c.short + '</p>' +
-              '<p class="text-white/90 text-xs leading-relaxed">' + c.detail + '</p>' +
+              '<p class="font-black text-base text-white mb-1" style="text-shadow:0 0 12px ' + c.color + '">' + name + '</p>' +
+              '<p class="font-bold text-xs mb-2" style="color:' + c.color + '">' + short + '</p>' +
+              '<p class="text-white/90 text-xs leading-relaxed">' + detail + '</p>' +
             '</div>' +
           '</div>';
 
         grid.appendChild(wrapper);
       });
-    })();
+    }
+
+    // Listen to live language changes
+    window.addEventListener('languageChanged', renderColorCards);
+
+    // Initial render
+    renderColorCards();
   </script>
 </body>
 </html>

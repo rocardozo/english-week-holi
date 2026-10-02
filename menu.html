@@ -50,23 +50,35 @@
   <canvas id="particles-canvas"></canvas>
 
   <!-- NAVBAR -->
-  <nav class="relative z-20 glass flex items-center justify-between px-5 py-3">
+  <nav class="relative z-20 glass flex items-center justify-between px-4 py-3">
     <a href="index.html" class="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors">
       <span class="text-xl">🎨</span>
-      <span>Holi Fest</span>
+      <span data-i18n-en="Holi Fest" data-i18n-es="Festival Holi">Holi Fest</span>
     </a>
-    <span class="text-xs text-white/50">English Week 2026</span>
-    <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg glass border border-white/20 hover:border-holi-yellow text-white/80 hover:text-white transition-all">
-      Home 🏠
-    </a>
+    
+    <!-- Controls: Language Toggle & Home -->
+    <div class="flex items-center gap-2">
+      <button onclick="I18N.toggleLang()" class="lang-toggle-btn glass px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 hover:border-holi-yellow transition-all flex items-center gap-1">
+        🇬🇧 <span class="font-bold text-holi-yellow">EN</span> / <span class="opacity-60">ES</span>
+      </button>
+      <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg glass border border-white/20 hover:border-holi-yellow text-white/80 hover:text-white transition-all"
+         data-i18n-en="Home 🏠"
+         data-i18n-es="Inicio 🏠">
+        Home 🏠
+      </a>
+    </div>
   </nav>
 
   <!-- MAIN CONTENT -->
   <main class="relative z-10 max-w-md w-full mx-auto px-4 py-8 flex flex-col items-center gap-6 my-auto">
     <div class="text-center">
       <div class="text-5xl mb-3 animate-bounce">🎊</div>
-      <h1 class="font-black text-3xl sm:text-4xl grad-text">Choose an Activity</h1>
-      <p class="text-white/70 text-sm mt-2">Tap a card to start playing and learning!</p>
+      <h1 class="font-black text-3xl sm:text-4xl grad-text"
+          data-i18n-en="Choose an Activity"
+          data-i18n-es="Elige una Actividad">Choose an Activity</h1>
+      <p class="text-white/70 text-sm mt-2"
+         data-i18n-en="Tap a card to start playing and learning!"
+         data-i18n-es="¡Toca una tarjeta para jugar y aprender!">Tap a card to start playing and learning!</p>
     </div>
 
     <div class="w-full flex flex-col gap-4 mt-2">
@@ -77,8 +89,12 @@
           🌸
         </div>
         <div>
-          <p class="font-black text-lg text-white">Color Meanings</p>
-          <p class="text-white/70 text-sm">Discover what each Holi colour represents</p>
+          <p class="font-black text-lg text-white"
+             data-i18n-en="Color Meanings"
+             data-i18n-es="Significado de los Colores">Color Meanings</p>
+          <p class="text-white/70 text-sm"
+             data-i18n-en="Discover what each Holi colour represents"
+             data-i18n-es="Descubre qué representa cada color de Holi">Discover what each Holi colour represents</p>
         </div>
         <span class="ml-auto text-white/40 text-2xl font-bold">›</span>
       </a>
@@ -90,8 +106,12 @@
           🧠
         </div>
         <div>
-          <p class="font-black text-lg text-white">Holi Trivia</p>
-          <p class="text-white/70 text-sm">Answer questions &amp; win a prize! 🏆</p>
+          <p class="font-black text-lg text-white"
+             data-i18n-en="Holi Trivia"
+             data-i18n-es="Trivia de Holi">Holi Trivia</p>
+          <p class="text-white/70 text-sm"
+             data-i18n-en="Answer questions &amp; win a prize! 🏆"
+             data-i18n-es="¡Responde preguntas y gana un premio! 🏆">Answer questions &amp; win a prize! 🏆</p>
         </div>
         <span class="ml-auto text-white/40 text-2xl font-bold">›</span>
       </a>
@@ -103,15 +123,21 @@
           🖌️
         </div>
         <div>
-          <p class="font-black text-lg text-white">Colour Mural</p>
-          <p class="text-white/70 text-sm">Paint your own Holi powder masterpiece!</p>
+          <p class="font-black text-lg text-white"
+             data-i18n-en="Colour Mural"
+             data-i18n-es="Mural de Colores">Colour Mural</p>
+          <p class="text-white/70 text-sm"
+             data-i18n-en="Paint your own Holi powder masterpiece!"
+             data-i18n-es="¡Pinta tu propia obra de arte con polvos Holi!">Paint your own Holi powder masterpiece!</p>
         </div>
         <span class="ml-auto text-white/40 text-2xl font-bold">›</span>
       </a>
     </div>
 
     <!-- Back to Home -->
-    <a href="index.html" class="btn-holi glass rounded-xl px-6 py-2.5 text-white/60 hover:text-white text-sm mt-4 border border-white/10 hover:border-white/30 transition-colors">
+    <a href="index.html" class="btn-holi glass rounded-xl px-6 py-2.5 text-white/60 hover:text-white text-sm mt-4 border border-white/10 hover:border-white/30 transition-colors"
+       data-i18n-en="← Back to Home"
+       data-i18n-es="← Volver al Inicio">
       ← Back to Home
     </a>
   </main>
@@ -122,6 +148,8 @@
   </footer>
 
   <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/particles.js"></script>
 </body>
 </html>

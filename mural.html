@@ -50,22 +50,35 @@
   <canvas id="particles-canvas"></canvas>
 
   <!-- NAVBAR -->
-  <nav class="relative z-20 glass flex items-center justify-between px-5 py-3">
-    <a href="menu.html" class="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors">
+  <nav class="relative z-20 glass flex items-center justify-between px-4 py-3">
+    <a href="menu.html" class="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors"
+       data-i18n-en="← Menu"
+       data-i18n-es="← Menú">
       <span>←</span>
       <span>Menu</span>
     </a>
-    <span class="font-bold text-sm text-holi-cyan">Colour Mural 🖌️</span>
-    <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg glass border border-white/20 hover:border-white text-white/80 hover:text-white transition-all">
-      Home 🏠
-    </a>
+    
+    <div class="flex items-center gap-2">
+      <button onclick="I18N.toggleLang()" class="lang-toggle-btn glass px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 hover:border-holi-yellow transition-all flex items-center gap-1">
+        🇬🇧 <span class="font-bold text-holi-yellow">EN</span> / <span class="opacity-60">ES</span>
+      </button>
+      <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg glass border border-white/20 hover:border-white text-white/80 hover:text-white transition-all"
+         data-i18n-en="Home 🏠"
+         data-i18n-es="Inicio 🏠">
+        Home 🏠
+      </a>
+    </div>
   </nav>
 
   <!-- MAIN CONTENT -->
   <main class="relative z-10 max-w-lg w-full mx-auto px-4 py-6 flex flex-col gap-4 my-auto">
     <div class="text-center">
-      <h1 class="font-black text-2xl sm:text-3xl grad-text">Colour Mural 🖌️</h1>
-      <p class="text-white/70 text-xs sm:text-sm mt-1">Tap or drag on the canvas to throw colourful Holi powder!</p>
+      <h1 class="font-black text-2xl sm:text-3xl grad-text"
+          data-i18n-en="Colour Mural 🖌️"
+          data-i18n-es="Mural de Colores 🖌️">Colour Mural 🖌️</h1>
+      <p class="text-white/70 text-xs sm:text-sm mt-1"
+         data-i18n-en="Tap or drag on the canvas to throw colourful Holi powder!"
+         data-i18n-es="¡Toca o arrastra en el lienzo para lanzar polvos de colores!">Tap or drag on the canvas to throw colourful Holi powder!</p>
     </div>
 
     <!-- Palette -->
@@ -73,7 +86,9 @@
 
     <!-- Brush size control -->
     <div class="glass rounded-xl px-4 py-2 flex items-center gap-3 border border-white/10">
-      <span class="text-white/70 text-xs font-semibold">Brush Size:</span>
+      <span class="text-white/70 text-xs font-semibold"
+            data-i18n-en="Brush Size:"
+            data-i18n-es="Tamaño de Pincel:">Brush Size:</span>
       <input id="brush-size" type="range" min="6" max="45" value="16" class="flex-1 accent-pink-500 cursor-pointer" />
       <span id="brush-size-label" class="text-holi-yellow text-xs font-bold w-6 text-right">16</span>
     </div>
@@ -81,7 +96,9 @@
     <!-- Canvas -->
     <div class="relative rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl bg-[#0D0020]">
       <canvas id="mural-canvas" class="block w-full touch-none cursor-crosshair" style="height: 340px;"></canvas>
-      <div id="mural-hint" class="absolute inset-0 flex items-center justify-center text-white/30 text-sm pointer-events-none select-none">
+      <div id="mural-hint" class="absolute inset-0 flex items-center justify-center text-white/30 text-sm pointer-events-none select-none"
+           data-i18n-en="✨ Tap or drag anywhere to paint!"
+           data-i18n-es="✨ ¡Toca o arrastra para pintar!">
         ✨ Tap or drag anywhere to paint!
       </div>
     </div>
@@ -89,18 +106,24 @@
     <!-- Actions -->
     <div class="flex gap-3">
       <button id="mural-clear-btn" onclick="muralClear()"
-        class="btn-holi flex-1 glass rounded-xl py-3 text-sm font-bold border border-white/15 text-white/80 hover:text-white">
+        class="btn-holi flex-1 glass rounded-xl py-3 text-sm font-bold border border-white/15 text-white/80 hover:text-white"
+        data-i18n-en="🗑️ Clear"
+        data-i18n-es="🗑️ Limpiar">
         🗑️ Clear
       </button>
       <button id="mural-save-btn" onclick="muralSave()"
-        class="btn-holi flex-1 glass rounded-xl py-3 text-sm font-bold border border-holi-cyan/40 text-holi-cyan hover:bg-holi-cyan/20">
+        class="btn-holi flex-1 glass rounded-xl py-3 text-sm font-bold border border-holi-cyan/40 text-holi-cyan hover:bg-holi-cyan/20"
+        data-i18n-en="💾 Download Art"
+        data-i18n-es="💾 Guardar Imagen">
         💾 Download Art
       </button>
     </div>
 
     <!-- Back to Menu -->
     <div class="text-center mt-1">
-      <a href="menu.html" class="btn-holi glass rounded-xl px-6 py-2.5 text-white/70 hover:text-white text-xs border border-white/10">
+      <a href="menu.html" class="btn-holi glass rounded-xl px-6 py-2.5 text-white/70 hover:text-white text-xs border border-white/10"
+         data-i18n-en="← Back to Activities Menu"
+         data-i18n-es="← Volver al Menú de Actividades">
         ← Back to Activities Menu
       </a>
     </div>
@@ -112,6 +135,7 @@
   </footer>
 
   <!-- Scripts -->
+  <script src="js/i18n.js"></script>
   <script src="js/particles.js"></script>
   <script>
     const PALETTE_COLORS = ['#FF3CAC','#FF7000','#FFD700','#00E676','#00E5FF','#7B2FFF','#FF4444','#FFFFFF','#000000'];
@@ -220,7 +244,6 @@
     }
 
     function muralSave() {
-      // Create temporary canvas with dark background for export
       const exportCanvas = document.createElement('canvas');
       exportCanvas.width = canvas.width;
       exportCanvas.height = canvas.height;

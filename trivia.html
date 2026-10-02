@@ -53,15 +53,24 @@
   <div id="confetti-container" class="fixed inset-0 pointer-events-none overflow-hidden z-40"></div>
 
   <!-- NAVBAR -->
-  <nav class="relative z-20 glass flex items-center justify-between px-5 py-3">
-    <a href="menu.html" class="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors">
+  <nav class="relative z-20 glass flex items-center justify-between px-4 py-3">
+    <a href="menu.html" class="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors"
+       data-i18n-en="← Menu"
+       data-i18n-es="← Menú">
       <span>←</span>
       <span>Menu</span>
     </a>
-    <span class="font-bold text-sm text-holi-yellow">Holi Trivia Quiz</span>
-    <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg glass border border-white/20 hover:border-white text-white/80 hover:text-white transition-all">
-      Home 🏠
-    </a>
+    
+    <div class="flex items-center gap-2">
+      <button onclick="I18N.toggleLang()" class="lang-toggle-btn glass px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 hover:border-holi-yellow transition-all flex items-center gap-1">
+        🇬🇧 <span class="font-bold text-holi-yellow">EN</span> / <span class="opacity-60">ES</span>
+      </button>
+      <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg glass border border-white/20 hover:border-white text-white/80 hover:text-white transition-all"
+         data-i18n-en="Home 🏠"
+         data-i18n-es="Inicio 🏠">
+        Home 🏠
+      </a>
+    </div>
   </nav>
 
   <!-- QUIZ VIEW -->
@@ -74,7 +83,7 @@
     <!-- Header Stats -->
     <div class="flex items-center justify-between text-xs text-white/60 px-1">
       <span id="trivia-counter" class="font-semibold">Question 1 / 8</span>
-      <span>Score: <strong id="trivia-score" class="text-holi-yellow text-sm font-black">0</strong></span>
+      <span><span data-i18n-en="Score" data-i18n-es="Puntaje">Score</span>: <strong id="trivia-score" class="text-holi-yellow text-sm font-black">0</strong></span>
     </div>
 
     <!-- Question Card -->
@@ -96,7 +105,9 @@
     </button>
 
     <div class="text-center mt-2">
-      <a href="menu.html" class="text-white/50 hover:text-white text-xs transition-colors">
+      <a href="menu.html" class="text-white/50 hover:text-white text-xs transition-colors"
+         data-i18n-en="← Exit to Activities Menu"
+         data-i18n-es="← Salir al Menú de Actividades">
         ← Exit to Activities Menu
       </a>
     </div>
@@ -105,27 +116,39 @@
   <!-- WINNER / RESULTS VIEW (Hidden by default) -->
   <section id="winner-section" class="relative z-20 max-w-sm w-full mx-auto px-4 py-8 hidden flex-col items-center gap-5 text-center my-auto">
     <div class="text-8xl animate-bounce">🏆</div>
-    <h1 class="font-black text-4xl sm:text-5xl grad-text">Quiz Complete!</h1>
+    <h1 class="font-black text-4xl sm:text-5xl grad-text"
+        data-i18n-en="Quiz Complete!"
+        data-i18n-es="¡Quiz Completado!">Quiz Complete!</h1>
     
     <div class="glass rounded-2xl px-8 py-5 border border-holi-yellow/40 w-full shadow-2xl">
-      <p class="text-white/60 text-xs uppercase tracking-widest">Your Final Score</p>
+      <p class="text-white/60 text-xs uppercase tracking-widest"
+         data-i18n-en="Your Final Score"
+         data-i18n-es="Tu Puntaje Final">Your Final Score</p>
       <p id="winner-score" class="font-black text-5xl text-holi-yellow mt-1">8 / 8</p>
       <p id="winner-msg" class="text-white/80 text-sm mt-2 font-semibold">Perfect score!</p>
     </div>
 
     <div class="glass rounded-2xl px-6 py-4 border border-holi-pink/40 w-full bg-gradient-to-br from-holi-pink/10 to-holi-purple/10">
       <p class="text-3xl mb-1">🎁</p>
-      <p class="font-bold text-white text-base">Show this screen at our stand!</p>
-      <p class="text-white/60 text-xs mt-1">Visit 2nd Year stand to claim your sweet reward 🙌</p>
+      <p class="font-bold text-white text-base"
+         data-i18n-en="Show this screen at our stand!"
+         data-i18n-es="¡Muestra esta pantalla en nuestro stand!">Show this screen at our stand!</p>
+      <p class="text-white/60 text-xs mt-1"
+         data-i18n-en="Visit 2nd Year stand to claim your sweet reward 🙌"
+         data-i18n-es="Visita el stand de 2° Año para retirar tu premio 🙌">Visit 2nd Year stand to claim your sweet reward 🙌</p>
     </div>
 
     <div class="flex flex-col sm:flex-row gap-3 w-full mt-2">
       <button onclick="restartQuiz()"
-        class="btn-holi flex-1 glass rounded-xl py-3 font-bold text-sm border border-holi-purple/40 bg-holi-purple/20 text-white">
+        class="btn-holi flex-1 glass rounded-xl py-3 font-bold text-sm border border-holi-purple/40 bg-holi-purple/20 text-white"
+        data-i18n-en="Play Again 🔄"
+        data-i18n-es="Jugar de Nuevo 🔄">
         Play Again 🔄
       </button>
       <a href="menu.html"
-        class="btn-holi flex-1 glass rounded-xl py-3 font-bold text-sm border border-white/20 text-white">
+        class="btn-holi flex-1 glass rounded-xl py-3 font-bold text-sm border border-white/20 text-white"
+        data-i18n-en="Menu 🎊"
+        data-i18n-es="Menú 🎊">
         Menu 🎊
       </a>
     </div>
@@ -138,11 +161,13 @@
 
   <!-- Scripts -->
   <script src="js/data.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/particles.js"></script>
   <script>
     let triviaIndex = 0;
     let triviaScore = 0;
     let triviaLocked = false;
+    let selectedAnswer = null;
 
     function renderTriviaQuestion() {
       if (triviaIndex >= TRIVIA.length) {
@@ -150,66 +175,90 @@
         return;
       }
 
-      triviaLocked = false;
+      const lang = I18N.getLang();
       const q = TRIVIA[triviaIndex];
       const pct = (triviaIndex / TRIVIA.length * 100).toFixed(0);
 
       document.getElementById('trivia-progress-bar').style.width = pct + '%';
-      document.getElementById('trivia-counter').textContent = 'Question ' + (triviaIndex + 1) + ' / ' + TRIVIA.length;
+      
+      const qLabel = lang === 'es' ? 'Pregunta' : 'Question';
+      document.getElementById('trivia-counter').textContent = `${qLabel} ${triviaIndex + 1} / ${TRIVIA.length}`;
       document.getElementById('trivia-score').textContent = triviaScore;
       document.getElementById('trivia-question-emoji').textContent = q.emoji;
-      document.getElementById('trivia-question-text').textContent = q.question;
-      
-      const fb = document.getElementById('trivia-feedback');
-      fb.textContent = '';
-      fb.className = 'text-center font-bold text-base sm:text-lg min-h-7';
-      
-      document.getElementById('trivia-next-btn').classList.add('hidden');
+      document.getElementById('trivia-question-text').textContent = (lang === 'es' ? q.question_es : q.question_en);
 
+      const options = lang === 'es' ? q.options_es : q.options_en;
       const container = document.getElementById('trivia-options');
       container.innerHTML = '';
-      q.options.forEach((opt, i) => {
+
+      options.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.id = 'trivia-opt-' + i;
         btn.className = 'trivia-opt glass rounded-xl px-4 py-3.5 text-left font-semibold text-white text-sm w-full';
         btn.textContent = ['A', 'B', 'C', 'D'][i] + '. ' + opt;
-        btn.onclick = () => triviaAnswer(i);
+        
+        if (triviaLocked) {
+          btn.disabled = true;
+          if (i === q.correct) btn.classList.add('correct');
+          else if (i === selectedAnswer && selectedAnswer !== q.correct) btn.classList.add('incorrect');
+        } else {
+          btn.onclick = () => triviaAnswer(i);
+        }
         container.appendChild(btn);
       });
+
+      // Update feedback if already answered
+      const fb = document.getElementById('trivia-feedback');
+      const nextBtn = document.getElementById('trivia-next-btn');
+
+      if (triviaLocked && selectedAnswer !== null) {
+        const isRight = selectedAnswer === q.correct;
+        const correctText = (lang === 'es' ? q.options_es[q.correct] : q.options_en[q.correct]);
+        
+        if (isRight) {
+          fb.textContent = lang === 'es' ? '🎉 ¡Correcto! ¡Muy bien!' : '🎉 Correct! Well done!';
+          fb.className = 'text-center font-bold text-base sm:text-lg min-h-7 text-holi-green';
+        } else {
+          fb.textContent = lang === 'es' 
+            ? `❌ No exactamente — la respuesta era "${correctText}"` 
+            : `❌ Not quite — the answer was "${correctText}"`;
+          fb.className = 'text-center font-bold text-base sm:text-lg min-h-7 text-red-400';
+        }
+
+        nextBtn.classList.remove('hidden');
+        if (triviaIndex + 1 < TRIVIA.length) {
+          nextBtn.textContent = lang === 'es' ? 'Siguiente Pregunta →' : 'Next Question →';
+        } else {
+          nextBtn.textContent = lang === 'es' ? 'Ver Resultados Finales 🏆' : 'See Final Results 🏆';
+        }
+      } else {
+        fb.textContent = '';
+        fb.className = 'text-center font-bold text-base sm:text-lg min-h-7';
+        nextBtn.classList.add('hidden');
+      }
     }
 
     function triviaAnswer(chosen) {
       if (triviaLocked) return;
       triviaLocked = true;
+      selectedAnswer = chosen;
 
       const q = TRIVIA[triviaIndex];
       const isRight = chosen === q.correct;
       if (isRight) triviaScore++;
 
-      q.options.forEach((_, i) => {
-        const btn = document.getElementById('trivia-opt-' + i);
-        btn.disabled = true;
-        if (i === q.correct) btn.classList.add('correct');
-        else if (i === chosen && !isRight) btn.classList.add('incorrect');
-      });
-
-      const fb = document.getElementById('trivia-feedback');
-      fb.textContent = isRight
-        ? '🎉 Correct! Well done!'
-        : '❌ Not quite — the answer was "' + q.options[q.correct] + '"';
-      fb.className = 'text-center font-bold text-base sm:text-lg min-h-7 ' + (isRight ? 'text-holi-green' : 'text-red-400');
-
-      const nextBtn = document.getElementById('trivia-next-btn');
-      nextBtn.classList.remove('hidden');
-      nextBtn.textContent = (triviaIndex + 1 < TRIVIA.length) ? 'Next Question →' : 'See Final Results 🏆';
+      renderTriviaQuestion();
     }
 
     function triviaNext() {
       triviaIndex++;
+      triviaLocked = false;
+      selectedAnswer = null;
       renderTriviaQuestion();
     }
 
     function showResults() {
+      const lang = I18N.getLang();
       document.getElementById('quiz-section').classList.add('hidden');
       const winSec = document.getElementById('winner-section');
       winSec.classList.remove('hidden');
@@ -217,10 +266,16 @@
 
       document.getElementById('winner-score').textContent = triviaScore + ' / ' + TRIVIA.length;
       const pct = triviaScore / TRIVIA.length;
-      const msg = pct === 1     ? '🌟 Perfect score! You are a true Holi expert!'
-                : pct >= 0.75   ? '👏 Great job! Almost perfect!'
-                : pct >= 0.5    ? '👍 Good job! Keep learning!'
-                : '💪 Keep trying — practice makes perfect!';
+      let msg = '';
+      if (pct === 1) {
+        msg = lang === 'es' ? '🌟 ¡Puntaje perfecto! ¡Sos un experto en Holi!' : '🌟 Perfect score! You are a true Holi expert!';
+      } else if (pct >= 0.75) {
+        msg = lang === 'es' ? '👏 ¡Excelente trabajo! ¡Casi perfecto!' : '👏 Great job! Almost perfect!';
+      } else if (pct >= 0.5) {
+        msg = lang === 'es' ? '👍 ¡Buen intento! ¡Seguí aprendiendo!' : '👍 Good job! Keep learning!';
+      } else {
+        msg = lang === 'es' ? '💪 ¡Seguí intentando! La práctica hace al maestro.' : '💪 Keep trying — practice makes perfect!';
+      }
       document.getElementById('winner-msg').textContent = msg;
 
       launchConfetti();
@@ -230,6 +285,7 @@
       triviaIndex = 0;
       triviaScore = 0;
       triviaLocked = false;
+      selectedAnswer = null;
       document.getElementById('confetti-container').innerHTML = '';
       document.getElementById('winner-section').classList.add('hidden');
       document.getElementById('winner-section').classList.remove('flex');
@@ -255,6 +311,15 @@
         container.appendChild(piece);
       }
     }
+
+    // Live update on language switch (preserves score, question index and state!)
+    window.addEventListener('languageChanged', () => {
+      if (triviaIndex >= TRIVIA.length) {
+        showResults();
+      } else {
+        renderTriviaQuestion();
+      }
+    });
 
     // Start quiz on load
     renderTriviaQuestion();
