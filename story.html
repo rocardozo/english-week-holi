@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- ─── SEO ─────────────────────────────────────────────────────────── -->
+  <title>The Story of Holi 📖 | English Week 2026</title>
+  <meta name="description" content="Discover the origins of Holi, the ancient legend of Prahlada, the 2 days of celebration, and traditional sweets!" />
+
+  <!-- ─── Tailwind CSS via CDN ─────────────────────────────────────────── -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ─── Google Fonts ─────────────────────────────────────────────────── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- ─── Tailwind Config ──────────────────────────────────────────────── -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            outfit: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            holi: {
+              pink:   '#FF3CAC',
+              orange: '#FF7000',
+              yellow: '#FFD700',
+              green:  '#00E676',
+              cyan:   '#00E5FF',
+              purple: '#7B2FFF',
+              deep:   '#1A0533',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- ─── Shared Stylesheet ────────────────────────────────────────────── -->
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .story-tab.active {
+      background: linear-gradient(135deg, #FF3CAC, #FF7000);
+      border-color: #FFD700;
+      box-shadow: 0 0 14px rgba(255, 60, 172, 0.45);
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body class="font-outfit text-white min-h-screen flex flex-col justify-between">
+
+  <!-- PARTICLES CANVAS -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- NAVBAR -->
+  <nav class="relative z-20 glass flex items-center justify-between px-4 py-3">
+    <a href="menu.html" class="flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors"
+       data-i18n-en="← Menu"
+       data-i18n-es="← Menú">
+      <span>←</span>
+      <span>Menu</span>
+    </a>
+    
+    <div class="flex items-center gap-2">
+      <!-- Sound toggle button -->
+      <button id="sound-toggle-btn" onclick="toggleSound()" class="glass px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 hover:border-holi-cyan transition-all flex items-center gap-1" title="Toggle sound">
+        🔊 <span class="text-holi-yellow text-[10px] font-bold">Sound</span>
+      </button>
+
+      <button onclick="I18N.toggleLang()" class="lang-toggle-btn glass px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 hover:border-holi-yellow transition-all flex items-center gap-1">
+        🇬🇧 <span class="font-bold text-holi-yellow">EN</span> / <span class="opacity-60">ES</span>
+      </button>
+      <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg glass border border-white/20 hover:border-white text-white/80 hover:text-white transition-all"
+         data-i18n-en="Home 🏠"
+         data-i18n-es="Inicio 🏠">
+        Home 🏠
+      </a>
+    </div>
+  </nav>
+
+  <!-- MAIN STORY CONTENT -->
+  <main class="relative z-10 max-w-xl w-full mx-auto px-4 py-6 flex flex-col gap-5">
+    
+    <!-- Hero Header -->
+    <div class="text-center">
+      <div class="text-5xl mb-2 animate-bounce">📖</div>
+      <h1 class="font-black text-2xl sm:text-4xl grad-text"
+          data-i18n-en="The Story of Holi ✨"
+          data-i18n-es="La Historia de Holi ✨">The Story of Holi ✨</h1>
+      <p class="text-white/80 text-xs sm:text-sm mt-1 max-w-md mx-auto"
+         data-i18n-en="Why do millions of people celebrate the Festival of Colours across the world?"
+         data-i18n-es="¿Por qué millones de personas celebran el Festival de los Colores en todo el mundo?">
+        Why do millions of people celebrate the Festival of Colours across the world?
+      </p>
+    </div>
+
+    <!-- Category Filter Tabs -->
+    <div class="flex items-center justify-center gap-1.5 sm:gap-2 overflow-x-auto pb-1">
+      <button onclick="filterStory('all', this)" class="story-tab active glass px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 transition-all shrink-0" data-i18n-en="✨ All" data-i18n-es="✨ Todo">✨ All</button>
+      <button onclick="filterStory('legend', this)" class="story-tab glass px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 transition-all shrink-0" data-i18n-en="🔥 The Legend" data-i18n-es="🔥 La Leyenda">🔥 The Legend</button>
+      <button onclick="filterStory('days', this)" class="story-tab glass px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 transition-all shrink-0" data-i18n-en="🗓️ The 2 Days" data-i18n-es="🗓️ Los 2 Días">🗓️ The 2 Days</button>
+      <button onclick="filterStory('traditions', this)" class="story-tab glass px-3 py-1.5 rounded-full text-xs font-bold border border-white/20 transition-all shrink-0" data-i18n-en="🥟 Sweets & Fun" data-i18n-es="🥟 Dulces y Fiesta">🥟 Sweets & Fun</button>
+    </div>
+
+    <!-- ─── SECTION 1: WHAT IS HOLI? ────────────────────────────────────── -->
+    <article class="story-card glass rounded-2xl p-5 border border-holi-pink/30 flex flex-col gap-3 shadow-xl" data-category="all legend">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl p-2 rounded-xl bg-gradient-to-br from-holi-pink to-holi-purple">🌸</span>
+        <div>
+          <span class="text-[10px] uppercase font-bold tracking-wider text-holi-pink" data-i18n-en="Introduction" data-i18n-es="Introducción">Introduction</span>
+          <h2 class="font-black text-lg sm:text-xl text-white" data-i18n-en="What is Holi?" data-i18n-es="¿Qué es Holi?">What is Holi?</h2>
+        </div>
+      </div>
+
+      <p class="text-xs sm:text-sm text-white/90 leading-relaxed"
+         data-i18n-en="Holi is an ancient Hindu festival from India. People celebrate it every year in March during the full moon to welcome the arrival of <strong>Spring</strong> 🌿. It is known as the <em>Festival of Colours</em> and represents love, joy, new beginnings, and unity."
+         data-i18n-es="Holi es un antiguo festival tradicional de la India. Se celebra cada año en marzo durante la luna llena para dar la bienvenida a la <strong>Primavera</strong> 🌿. Se conoce como el <em>Festival de los Colores</em> y representa el amor, la alegría, los nuevos comienzos y la unión.">
+        Holi is an ancient Hindu festival from India. People celebrate it every year in March during the full moon to welcome the arrival of <strong>Spring</strong> 🌿. It is known as the <em>Festival of Colours</em> and represents love, joy, new beginnings, and unity.
+      </p>
+
+      <div class="grid grid-cols-3 gap-2 mt-1 pt-2 border-t border-white/10 text-center text-xs">
+        <div class="glass rounded-xl p-2 bg-white/5">
+          <p class="text-base">📅</p>
+          <p class="font-bold text-holi-yellow text-[11px] mt-0.5" data-i18n-en="March" data-i18n-es="Marzo">March</p>
+          <p class="text-[10px] text-white/60" data-i18n-en="Full Moon" data-i18n-es="Luna Llena">Full Moon</p>
+        </div>
+        <div class="glass rounded-xl p-2 bg-white/5">
+          <p class="text-base">🌿</p>
+          <p class="font-bold text-holi-green text-[11px] mt-0.5" data-i18n-en="Spring Season" data-i18n-es="Primavera">Spring Season</p>
+          <p class="text-[10px] text-white/60" data-i18n-en="End of Winter" data-i18n-es="Fin del Invierno">End of Winter</p>
+        </div>
+        <div class="glass rounded-xl p-2 bg-white/5">
+          <p class="text-base">🎨</p>
+          <p class="font-bold text-holi-cyan text-[11px] mt-0.5" data-i18n-en="Gulal Powder" data-i18n-es="Polvo Gulal">Gulal Powder</p>
+          <p class="text-[10px] text-white/60" data-i18n-en="Bright Colours" data-i18n-es="Colores Vivos">Bright Colours</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- ─── SECTION 2: THE LEGEND (GOOD OVER EVIL) ───────────────────────── -->
+    <article class="story-card glass rounded-2xl p-5 border border-holi-orange/40 flex flex-col gap-3 shadow-xl" data-category="all legend">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl p-2 rounded-xl bg-gradient-to-br from-holi-orange to-holi-yellow">🔥</span>
+        <div>
+          <span class="text-[10px] uppercase font-bold tracking-wider text-holi-orange" data-i18n-en="Ancient Legend" data-i18n-es="Antigua Leyenda">Ancient Legend</span>
+          <h2 class="font-black text-lg sm:text-xl text-white" data-i18n-en="The Legend of Prahlada &amp; Holika" data-i18n-es="La Leyenda de Prahlada y Holika">The Legend of Prahlada &amp; Holika</h2>
+        </div>
+      </div>
+
+      <p class="text-xs sm:text-sm text-white/90 leading-relaxed"
+         data-i18n-en="Long ago in India, there was a powerful and cruel king named <strong>Hiranyakashipu</strong>. He demanded that everyone worship him as a god. But his young son, <strong>Prince Prahlada</strong>, was kind and refused. He worshiped the protector god, <strong>Lord Vishnu</strong>."
+         data-i18n-es="Hace mucho tiempo en la India, existió un rey cruel y poderoso llamado <strong>Hiranyakashipu</strong>. Él exigía que todos lo adorasen como a un dios. Pero su joven hijo, el <strong>Príncipe Prahlada</strong>, era noble y se negó. Él adoraba al dios protector, <strong>Lord Vishnu</strong>.">
+        Long ago in India, there was a powerful and cruel king named <strong>Hiranyakashipu</strong>. He demanded that everyone worship him as a god. But his young son, <strong>Prince Prahlada</strong>, was kind and refused. He worshiped the protector god, <strong>Lord Vishnu</strong>.
+      </p>
+
+      <div class="glass rounded-xl p-3.5 border border-holi-yellow/30 bg-gradient-to-r from-holi-deep/80 to-holi-purple/30 text-xs sm:text-sm text-white/90 leading-relaxed">
+        <p class="font-bold text-holi-yellow mb-1" data-i18n-en="⚡ The Fire Trial" data-i18n-es="⚡ La Prueba del Fuego">⚡ The Fire Trial</p>
+        <p data-i18n-en="The furious king ordered his demon sister, <strong>Holika</strong>, to destroy Prahlada. Holika had a magical shawl that made her immune to fire. She carried young Prahlada into a roaring bonfire."
+           data-i18n-es="El rey furioso le ordenó a su malvada hermana, <strong>Holika</strong>, que destruyera a Prahlada. Holika tenía un manto mágico que la protegía del fuego. Tomó al joven Prahlada en sus brazos y se sentó en una gran fogata.">
+          The furious king ordered his demon sister, <strong>Holika</strong>, to destroy Prahlada. Holika had a magical shawl that made her immune to fire. She carried young Prahlada into a roaring bonfire.
+        </p>
+        <p class="mt-2 text-holi-green font-semibold"
+           data-i18n-en="✨ But a miracle happened! Prahlada's pure devotion made the magical shawl fly off Holika to cover Prahlada. Holika burned, and Prahlada was saved!"
+           data-i18n-es="✨ ¡Pero ocurrió un milagro! La devoción pura de Prahlada hizo que el manto mágico volara para cubrirlo a él. ¡Holika se quemó y Prahlada salió ileso!">
+          ✨ But a miracle happened! Prahlada's pure devotion made the magical shawl fly off Holika to cover Prahlada. Holika burned, and Prahlada was saved!
+        </p>
+      </div>
+
+      <div class="p-2.5 rounded-xl bg-holi-green/10 border border-holi-green/30 text-center">
+        <p class="text-xs font-bold text-holi-green"
+           data-i18n-en="🌟 Moral: Good always triumphs over evil!"
+           data-i18n-es="🌟 Moraleja: ¡El bien siempre triunfa sobre el mal!">🌟 Moral: Good always triumphs over evil!</p>
+      </div>
+    </article>
+
+    <!-- ─── SECTION 3: THE 2 DAYS OF HOLI ──────────────────────────────── -->
+    <article class="story-card glass rounded-2xl p-5 border border-holi-cyan/40 flex flex-col gap-4 shadow-xl" data-category="all days">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl p-2 rounded-xl bg-gradient-to-br from-holi-cyan to-holi-purple">🗓️</span>
+        <div>
+          <span class="text-[10px] uppercase font-bold tracking-wider text-holi-cyan" data-i18n-en="Festival Schedule" data-i18n-es="Cronograma del Festival">Festival Schedule</span>
+          <h2 class="font-black text-lg sm:text-xl text-white" data-i18n-en="Why is Holi celebrated over 2 Days?" data-i18n-es="¿Por qué Holi se celebra en 2 Días?">Why is Holi celebrated over 2 Days?</h2>
+        </div>
+      </div>
+
+      <p class="text-xs sm:text-sm text-white/90"
+         data-i18n-en="Holi is not just a single morning; it has two very distinct, meaningful parts:"
+         data-i18n-es="Holi no es solo una mañana; consta de dos momentos muy especiales e importantes:">
+        Holi is not just a single morning; it has two very distinct, meaningful parts:
+      </p>
+
+      <!-- Day 1 Card -->
+      <div class="glass rounded-xl p-4 border border-holi-orange/40 bg-gradient-to-br from-holi-orange/15 to-transparent flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <span class="font-black text-sm text-holi-orange flex items-center gap-1.5">
+            <span>🔥</span>
+            <span data-i18n-en="Day 1: Holika Dahan (Chhoti Holi)" data-i18n-es="Día 1: Holika Dahan (Chhoti Holi)">Day 1: Holika Dahan (Chhoti Holi)</span>
+          </span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-holi-orange/30 text-white" data-i18n-en="Night" data-i18n-es="Noche">Night</span>
+        </div>
+        <p class="text-xs text-white/80 leading-relaxed"
+           data-i18n-en="On the first evening, people gather dry wood and build big bonfires in streets and squares. At night, they light the fire to remember the story of Prahlada. People sing, pray, and walk around the fire. It symbolizes burning away negativity, fear, and bad feelings."
+           data-i18n-es="En la primera tarde, la gente junta leña seca y arma grandes fogatas en plazas y calles. Por la noche encienden el fuego para recordar la historia de Prahlada. Cantan, rezan y caminan alrededor del fuego. Simboliza quemar la negatividad, los miedos y los malos sentimientos.">
+          On the first evening, people gather dry wood and build big bonfires in streets and squares. At night, they light the fire to remember the story of Prahlada. People sing, pray, and walk around the fire. It symbolizes burning away negativity, fear, and bad feelings.
+        </p>
+      </div>
+
+      <!-- Day 2 Card -->
+      <div class="glass rounded-xl p-4 border border-holi-green/40 bg-gradient-to-br from-holi-green/15 to-transparent flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <span class="font-black text-sm text-holi-green flex items-center gap-1.5">
+            <span>🎨</span>
+            <span data-i18n-en="Day 2: Rangwali Holi (Dhulandi)" data-i18n-es="Día 2: Rangwali Holi (Dhulandi)">Day 2: Rangwali Holi (Dhulandi)</span>
+          </span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-holi-green/30 text-white" data-i18n-en="All Day" data-i18n-es="Todo el Día">All Day</span>
+        </div>
+        <p class="text-xs text-white/80 leading-relaxed"
+           data-i18n-en="The next morning is the main party! People wear white clothes and run outdoors with bright coloured powders (<em>Gulal</em>), water guns (<em>pichkaris</em>), and water balloons. Everyone dances to drums (<em>dhol</em>), laughs, and paints each other's faces."
+           data-i18n-es="¡A la mañana siguiente es la gran fiesta! La gente usa ropa blanca y sale al aire libre con polvos de colores brillantes (<em>Gulal</em>), pistolas de agua (<em>pichkaris</em>) y globos. Todos bailan al ritmo de tambores (<em>dhol</em>), ríen y se pintan los rostros unos a otros.">
+          The next morning is the main party! People wear white clothes and run outdoors with bright coloured powders (<em>Gulal</em>), water guns (<em>pichkaris</em>), and water balloons. Everyone dances to drums (<em>dhol</em>), laughs, and paints each other's faces.
+        </p>
+        <p class="text-xs text-holi-yellow font-bold mt-1"
+           data-i18n-en="🗣️ Famous phrase: &ldquo;Bura na mano, Holi hai!&rdquo; (Don't be upset, it's Holi!)"
+           data-i18n-es="🗣️ Frase popular: &ldquo;Bura na mano, Holi hai!&rdquo; (¡No te molestes, es Holi!)">
+          🗣️ Famous phrase: &ldquo;Bura na mano, Holi hai!&rdquo; (Don't be upset, it's Holi!)
+        </p>
+      </div>
+    </article>
+
+    <!-- ─── SECTION 4: SWEETS & TRADITIONS ──────────────────────────────── -->
+    <article class="story-card glass rounded-2xl p-5 border border-holi-yellow/40 flex flex-col gap-3 shadow-xl" data-category="all traditions">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl p-2 rounded-xl bg-gradient-to-br from-holi-yellow to-holi-orange">🥟</span>
+        <div>
+          <span class="text-[10px] uppercase font-bold tracking-wider text-holi-yellow" data-i18n-en="Flavours &amp; Rituals" data-i18n-es="Sabores y Rituales">Flavours &amp; Rituals</span>
+          <h2 class="font-black text-lg sm:text-xl text-white" data-i18n-en="Traditional Food &amp; Friendship" data-i18n-es="Comida Típica y Amistad">Traditional Food &amp; Friendship</h2>
+        </div>
+      </div>
+
+      <p class="text-xs sm:text-sm text-white/90"
+         data-i18n-en="After playing with colours, people take a bath, put on clean clothes, and visit relatives and neighbors to share sweet treats:"
+         data-i18n-es="Después de jugar con los colores, las personas se bañan, se visten con ropa limpia y visitan a familiares y vecinos para compartir delicias:">
+        After playing with colours, people take a bath, put on clean clothes, and visit relatives and neighbors to share sweet treats:
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+        <!-- Sweet 1: Gujiya -->
+        <div class="glass rounded-xl p-3 border border-white/10 flex items-start gap-3">
+          <span class="text-3xl">🥟</span>
+          <div>
+            <p class="font-bold text-sm text-holi-yellow">Gujiya</p>
+            <p class="text-xs text-white/75 mt-0.5"
+               data-i18n-en="Delicious fried sweet dumplings filled with milk fudge (khoya), raisins, and almonds."
+               data-i18n-es="Empanaditas dulces fritas rellenas de leche condensada seca, pasas y almendras.">
+              Delicious fried sweet dumplings filled with milk fudge (khoya), raisins, and almonds.
+            </p>
+          </div>
+        </div>
+
+        <!-- Sweet 2: Thandai -->
+        <div class="glass rounded-xl p-3 border border-white/10 flex items-start gap-3">
+          <span class="text-3xl">🥛</span>
+          <div>
+            <p class="font-bold text-sm text-holi-cyan">Thandai</p>
+            <p class="text-xs text-white/75 mt-0.5"
+               data-i18n-en="A refreshing cold drink made of milk, crushed almonds, rose water, and spices."
+               data-i18n-es="Bebida fría y refrescante hecha con leche, almendras trituradas, agua de rosas y especias.">
+              A refreshing cold drink made of milk, crushed almonds, rose water, and spices.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forgiveness & Hugs -->
+      <div class="glass rounded-xl p-3.5 border border-holi-pink/30 bg-holi-pink/10 flex items-center gap-3 mt-1">
+        <span class="text-3xl shrink-0">🫂</span>
+        <p class="text-xs text-white/90"
+           data-i18n-en="<strong>Holi Milan:</strong> In the evening, enemies become friends, old arguments are forgiven, and everyone embraces with warm hugs!"
+           data-i18n-es="<strong>Holi Milan:</strong> Al atardecer, los viejos rencores se perdonan, los enemigos se hacen amigos y todos se dan un abrazo de paz.">
+          <strong>Holi Milan:</strong> In the evening, enemies become friends, old arguments are forgiven, and everyone embraces with warm hugs!
+        </p>
+      </div>
+    </article>
+
+    <!-- ─── SECTION 5: ELEMENTARY VOCABULARY CHEAT SHEET ─────────────────── -->
+    <article class="story-card glass rounded-2xl p-5 border border-holi-purple/40 flex flex-col gap-3 shadow-xl" data-category="all traditions">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl p-2 rounded-xl bg-gradient-to-br from-holi-purple to-holi-pink">🎓</span>
+        <div>
+          <span class="text-[10px] uppercase font-bold tracking-wider text-holi-cyan" data-i18n-en="English File Elementary Helper" data-i18n-es="Guía de Vocabulario Elemental">English File Elementary Helper</span>
+          <h2 class="font-black text-lg sm:text-xl text-white" data-i18n-en="Key Words for English Week" data-i18n-es="Palabras Clave para English Week">Key Words for English Week</h2>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+        <div class="glass rounded-xl p-2.5 border border-white/10">
+          <p class="font-bold text-holi-yellow">Bonfire 🔥</p>
+          <p class="text-white/60 text-[11px]" data-i18n-en="Big outdoor fire" data-i18n-es="Gran fogata">Big outdoor fire</p>
+        </div>
+        <div class="glass rounded-xl p-2.5 border border-white/10">
+          <p class="font-bold text-holi-pink">Coloured Powder 🎨</p>
+          <p class="text-white/60 text-[11px]" data-i18n-en="Gulal dust" data-i18n-es="Polvo de colores">Gulal dust</p>
+        </div>
+        <div class="glass rounded-xl p-2.5 border border-white/10">
+          <p class="font-bold text-holi-green">Spring 🌿</p>
+          <p class="text-white/60 text-[11px]" data-i18n-en="Flower season" data-i18n-es="Estación de flores">Flower season</p>
+        </div>
+        <div class="glass rounded-xl p-2.5 border border-white/10">
+          <p class="font-bold text-holi-cyan">Forgive 🤝</p>
+          <p class="text-white/60 text-[11px]" data-i18n-en="Forget old fights" data-i18n-es="Perdonar rencores">Forget old fights</p>
+        </div>
+        <div class="glass rounded-xl p-2.5 border border-white/10">
+          <p class="font-bold text-holi-orange">Full Moon 🌕</p>
+          <p class="text-white/60 text-[11px]" data-i18n-en="Phalguna month" data-i18n-es="Noche de luna llena">Phalguna month</p>
+        </div>
+        <div class="glass rounded-xl p-2.5 border border-white/10">
+          <p class="font-bold text-holi-purple">Sweet Treat 🍬</p>
+          <p class="text-white/60 text-[11px]" data-i18n-en="Gujiya pastries" data-i18n-es="Golosinas ricas">Gujiya pastries</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- Quick CTA to Trivia -->
+    <div class="glass rounded-2xl p-5 border border-holi-yellow/40 text-center flex flex-col items-center gap-3">
+      <span class="text-3xl animate-bounce">🧠</span>
+      <div>
+        <p class="font-black text-base text-white"
+           data-i18n-en="Did you learn the story?"
+           data-i18n-es="¿Aprendiste la historia?">Did you learn the story?</p>
+        <p class="text-xs text-white/70 mt-0.5"
+           data-i18n-en="Test your memory in our interactive Trivia quiz and win a prize!"
+           data-i18n-es="¡Pon a prueba tu memoria en la Trivia interactiva y gana un premio!">Test your memory in our interactive Trivia quiz and win a prize!</p>
+      </div>
+      <a href="trivia.html" class="btn-holi glass rounded-xl px-6 py-2.5 text-xs font-black text-white bg-gradient-to-r from-holi-pink via-holi-orange to-holi-yellow shadow-lg">
+        <span data-i18n-en="Play Trivia Quiz 🏆" data-i18n-es="Jugar a la Trivia 🏆">Play Trivia Quiz 🏆</span>
+      </a>
+    </div>
+
+    <!-- Back to Menu -->
+    <div class="text-center mt-2">
+      <a href="menu.html" class="btn-holi glass rounded-xl px-6 py-2.5 text-white/70 hover:text-white text-xs border border-white/10"
+         data-i18n-en="← Back to Activities Menu"
+         data-i18n-es="← Volver al Menú de Actividades">
+        ← Back to Activities Menu
+      </a>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="relative z-10 text-center py-4 text-xs text-white/50 flex flex-col items-center gap-1">
+    <p>Instituto de Idiomas de Salta • English Week 2026</p>
+    <p class="text-white/40 text-[11px]">
+      <span data-i18n-en="Designed & Developed by" data-i18n-es="Diseñado y Desarrollado por">Designed & Developed by</span>
+      <a href="mailto:rodrigocardozo86@gmail.com" class="text-holi-yellow hover:underline font-semibold transition-colors">Rodrigo Cardozo 🚀</a> • 
+      <a href="mailto:rodrigocardozo86@gmail.com" class="hover:text-white transition-colors inline-flex items-center text-sm" title="rodrigocardozo86@gmail.com">✉️</a>
+    </p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/particles.js"></script>
+
+  <script>
+    // ─── Sound System (Web Audio API) ──────────────────────────────────────────
+    let audioCtx = null;
+    let isMuted = (localStorage.getItem('holi_sound_muted') || localStorage.getItem('holi_match_muted')) === 'true';
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function toggleSound() {
+      isMuted = !isMuted;
+      localStorage.setItem('holi_sound_muted', isMuted);
+      localStorage.setItem('holi_match_muted', isMuted);
+      updateSoundButton();
+      if (!isMuted) playTabSound();
+    }
+
+    function updateSoundButton() {
+      const btn = document.getElementById('sound-toggle-btn');
+      if (btn) {
+        btn.innerHTML = isMuted 
+          ? '🔇 <span class="opacity-60 text-[10px]">Mute</span>' 
+          : '🔊 <span class="text-holi-yellow text-[10px] font-bold">Sound</span>';
+      }
+    }
+
+    function playTabSound() {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(520, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(780, ctx.currentTime + 0.05);
+
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+      } catch (e) {}
+    }
+
+    // ─── Tab Filter Logic ──────────────────────────────────────────────────────
+    function filterStory(category, btn) {
+      playTabSound();
+      document.querySelectorAll('.story-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+
+      const cards = document.querySelectorAll('.story-card');
+      cards.forEach(card => {
+        const catList = card.dataset.category || '';
+        if (category === 'all' || catList.includes(category)) {
+          card.classList.remove('hidden');
+          card.classList.add('flex');
+        } else {
+          card.classList.add('hidden');
+          card.classList.remove('flex');
+        }
+      });
+    }
+
+    updateSoundButton();
+  </script>
+</body>
+</html>
