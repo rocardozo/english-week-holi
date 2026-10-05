@@ -18,6 +18,7 @@ const TEAM = {
     'Leticia',           
     'Collante Luciano',
     'Sofía',             
+    'Mia',
     'Tobi Mario',
     'Tobi Adriana',
     'Cardozo Rodrigo'
